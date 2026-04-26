@@ -500,6 +500,15 @@
       return pickRandom(pool, 10);
     }
 
+    function createMaskedWord(word) {
+      if (!word) return '○○';
+      if (word.length <= 2) return '○'.repeat(word.length);
+      const chars = word.split('');
+      return chars
+        .map((ch, idx) => (idx % 2 === 0 ? '○' : ch))
+        .join('');
+    }
+
     function buildQuestion(item) {
       const format = ['meaning', 'word', 'hole', 'story'][Math.floor(Math.random() * 4)];
       const sameCategory = WORDS.filter((w) => w.category === item.category && w.id !== item.id);
@@ -522,7 +531,7 @@
         choices.push(answerText);
         formatLabel = '言葉を選ぶ問題';
       } else if (format === 'hole') {
-        const masked = item.word.length >= 2 ? `${item.word.slice(0, 1)}○${item.word.slice(2)}` : '○○';
+        const masked = createMaskedWord(item.word);
         prompt = `【穴埋めクイズ】\n「${masked}」に入る正しい言葉をえらぼう。\nヒント: ${item.meaning}`;
         answerText = item.word;
         choices = pickRandom(sameCategory.map((w) => w.word), 3);
