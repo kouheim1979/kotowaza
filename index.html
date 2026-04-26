@@ -184,6 +184,89 @@
     }
 
     .small { font-size: 16px; color: var(--sub); }
+    .small.rare { font-weight: 800; color: #7a4b00; }
+
+    .today-word {
+      background: #eef8ff;
+      border: 2px dashed #9ec8f7;
+      border-radius: 12px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+
+    .battle-board {
+      border: 2px solid #cde0f6;
+      background: #f6fbff;
+      border-radius: 12px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+
+    .monster-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    .monster-avatar {
+      font-size: clamp(40px, 8vw, 58px);
+      filter: drop-shadow(0 2px 0 #b6d3f2);
+      transition: transform 0.2s ease;
+    }
+
+    .monster-avatar.hit { animation: hitShake 0.45s ease; }
+    .monster-avatar.special { animation: flashStrike 0.75s ease; }
+
+    .monster-hp {
+      width: 100%;
+      height: 14px;
+      background: #d9e9fa;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid #abc9ea;
+      margin-top: 8px;
+    }
+
+    .monster-hp-bar {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, #ff5f6d, #ff9f43);
+      transition: width 0.35s ease;
+    }
+
+    .battle-log {
+      margin-top: 6px;
+      font-size: 17px;
+      font-weight: 700;
+      color: #22486f;
+    }
+
+    .treasure-toast {
+      border: 2px solid #ffd166;
+      background: #fff8d9;
+      border-radius: 12px;
+      padding: 10px;
+      margin-top: 10px;
+      font-weight: 700;
+      display: none;
+    }
+
+    @keyframes hitShake {
+      0% { transform: translateX(0); }
+      20% { transform: translateX(-6px); }
+      40% { transform: translateX(6px); }
+      60% { transform: translateX(-4px); }
+      80% { transform: translateX(4px); }
+      100% { transform: translateX(0); }
+    }
+
+    @keyframes flashStrike {
+      0% { transform: scale(1); filter: brightness(1); }
+      40% { transform: scale(1.2); filter: brightness(1.5); }
+      100% { transform: scale(1); filter: brightness(1); }
+    }
 
     .list {
       display: grid;
@@ -227,6 +310,7 @@
       <h1 id="titleHeading">ことばクエスト<br>〜慣用句・ことわざ・古事成語バトル〜</h1>
       <p class="subtitle">ことば博士と いっしょに、ことばの ぼうけんへ！</p>
       <div class="guide" aria-live="polite">👨‍🏫 ことば博士「1回10問！3〜5分でサクッと学べるよ。まちがえても大丈夫、つぎでレベルアップ！」</div>
+      <article class="today-word" id="todayWordBox" aria-live="polite"></article>
       <div id="titleStats" class="status"></div>
       <button class="btn good" id="startFromTitle" aria-label="モード選択へ進む">ゲームスタート！</button>
       <div class="footer-nav row">
@@ -254,6 +338,19 @@
     <section id="quizScreen" class="screen" aria-labelledby="quizHeading">
       <h2 id="quizHeading" tabindex="-1">クイズバトル</h2>
       <div class="status" id="quizStatus"></div>
+      <section class="battle-board" aria-live="polite">
+        <div class="monster-row">
+          <div>
+            <strong id="monsterName">まちがいモンスター</strong>
+            <div class="small" id="monsterState">のんびりしている…</div>
+          </div>
+          <div class="monster-avatar" id="monsterAvatar" role="img" aria-label="まちがいモンスター">👾</div>
+        </div>
+        <div class="monster-hp" aria-label="モンスターHP">
+          <div class="monster-hp-bar" id="monsterHpBar"></div>
+        </div>
+        <div class="battle-log" id="battleLog">バトル開始！ことばでダメージをあたえよう！</div>
+      </section>
       <div class="guide" id="guideMessage">🧙 かんちゃん「いける！あせらず えらぼう！」</div>
       <article class="question">
         <div class="small" id="questionMeta"></div>
@@ -264,6 +361,7 @@
           <button class="btn" id="nextBtn" style="max-width:220px; display:none;">つぎの問題へ</button>
         </div>
         <div id="feedback" class="feedback" aria-live="polite" style="display:none;"></div>
+        <div id="treasureToast" class="treasure-toast" aria-live="polite"></div>
       </article>
       <div class="footer-nav row">
         <button class="btn secondary" data-nav="modeScreen">モード選択へ</button>
@@ -382,6 +480,25 @@
     ];
 
     const STORAGE_KEY = 'kotobaQuestDataV1';
+    const TREASURE_MILESTONES = [3, 5, 10];
+    const TREASURE_TYPES = ['言葉カード', '称号', '星', 'スタンプ'];
+    const TITLES = ['ひよこ冒険者', 'ことばハンター', 'ことば勇者', '伝説のことば使い'];
+    const STAMPS = ['🔥', '🌈', '🛡️', '⚡', '📘', '🐉'];
+    const CHESTS = ['🧰', '🎁', '🗝️', '📦'];
+    const MONSTERS = ['👾', '😈', '🐲', '🦑'];
+    const CHARACTER_LINES = {
+      correct: ['やったね！その調子！', 'いいぞ！ことばの一撃！', '大正解！どんどん進もう！', 'ナイス！ことば力アップ中！'],
+      wrong: ['次はチャンス！', 'まちがえた言葉ほど覚えやすいよ。', 'だいじょうぶ、次で取り返せる！', '一歩ずつでOK！'],
+      hint: ['ヒントは作戦！うまく使おう。', 'ナイス判断！ここから逆転だ。', 'ヒントを使うのも強さだよ。'],
+      result: ['10問クリアおめでとう！', '今日もよくがんばったね！', 'つぎの冒険も楽しみだね！', '言葉マスターに近づいてる！']
+    };
+    const LEVEL_TABLE = [
+      {level: 1, title: 'ことば見習い', need: 0},
+      {level: 5, title: 'ことば探検家', need: 30},
+      {level: 10, title: 'ことば勇者', need: 90},
+      {level: 20, title: 'ことば博士', need: 220},
+      {level: 30, title: 'ことばマスター', need: 420}
+    ];
     const appState = {
       mode: 'mix',
       difficulty: 'all',
@@ -390,6 +507,10 @@
       score: 0,
       correct: 0,
       combo: 0,
+      chestClaimedInRun: [],
+      monsterHp: 100,
+      monsterEmoji: '👾',
+      specialCount: 0,
       hintUsed: false,
       answered: false,
       currentQuestion: null,
@@ -399,6 +520,10 @@
         totalPlays: 0,
         totalCorrect: 0,
         bestScore: 0,
+        treasures: [],
+        titles: [],
+        stars: 0,
+        stamps: [],
         settings: {difficulty: 'all'},
         lastPlayedAt: ''
       },
@@ -426,6 +551,10 @@
         appState.data = {
           ...appState.data,
           ...parsed,
+          treasures: Array.isArray(parsed.treasures) ? parsed.treasures : [],
+          titles: Array.isArray(parsed.titles) ? parsed.titles : [],
+          stamps: Array.isArray(parsed.stamps) ? parsed.stamps : [],
+          stars: Number(parsed.stars) || 0,
           settings: {...appState.data.settings, ...(parsed.settings || {})}
         };
       } catch (error) {
@@ -467,6 +596,39 @@
       if (cat === 'idiom') return '慣用句';
       if (cat === 'proverb') return 'ことわざ';
       return '古事成語';
+    }
+
+    function rarityLabel(diff) {
+      if (diff === 'easy') return '★';
+      if (diff === 'normal') return '★★';
+      if (diff === 'hard') return '★★★';
+      return '👑';
+    }
+
+    function getRandom(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function getTodayWord() {
+      const now = new Date();
+      const seed = `${now.getUTCFullYear()}-${now.getUTCMonth() + 1}-${now.getUTCDate()}`;
+      let hash = 0;
+      for (let i = 0; i < seed.length; i += 1) hash = (hash * 31 + seed.charCodeAt(i)) % WORDS.length;
+      return WORDS[hash];
+    }
+
+    function getPlayerLevel(totalCorrect) {
+      const thresholds = [
+        {level: 1, title: 'ことば見習い', min: 0, next: 30},
+        {level: 5, title: 'ことば探検家', min: 30, next: 90},
+        {level: 10, title: 'ことば勇者', min: 90, next: 220},
+        {level: 20, title: 'ことば博士', min: 220, next: 420},
+        {level: 30, title: 'ことばマスター', min: 420, next: null}
+      ];
+      for (let i = thresholds.length - 1; i >= 0; i -= 1) {
+        if (totalCorrect >= thresholds[i].min) return thresholds[i];
+      }
+      return thresholds[0];
     }
 
     function difficultyLabel(value) {
@@ -548,6 +710,10 @@
       appState.score = 0;
       appState.correct = 0;
       appState.combo = 0;
+      appState.chestClaimedInRun = [];
+      appState.monsterHp = 100;
+      appState.monsterEmoji = getRandom(MONSTERS);
+      appState.specialCount = 0;
       appState.hintUsed = false;
       appState.answered = false;
       appState.data.totalPlays += 1;
@@ -565,11 +731,14 @@
       appState.answered = false;
 
       const total = appState.deck.length;
+      const lv = getPlayerLevel(appState.data.totalCorrect);
       document.getElementById('quizStatus').innerHTML = `
         <div class="box">問題: ${appState.index + 1}/${total}</div>
         <div class="box">スコア: ${appState.score}</div>
         <div class="box">コンボ: ${appState.combo}</div>
         <div class="box">正解: ${appState.correct}</div>
+        <div class="box">Lv.${lv.level} ${lv.title}</div>
+        <div class="box">必殺技: ${appState.specialCount}回</div>
       `;
       document.getElementById('questionMeta').textContent = `${categoryLabel(item.category)} / ${difficultyLabel(item.difficulty)} / ${q.formatLabel}`;
       document.getElementById('questionPrompt').textContent = q.prompt;
@@ -577,6 +746,8 @@
       document.getElementById('nextBtn').style.display = 'none';
       document.getElementById('hintBtn').disabled = false;
       document.getElementById('guideMessage').textContent = '🧙 ことちゃん「あせらず読んで、ぴったりの答えをえらぼう！」';
+      document.getElementById('treasureToast').style.display = 'none';
+      renderMonsterPanel();
 
       const choicesArea = document.getElementById('choicesArea');
       choicesArea.innerHTML = '';
@@ -609,6 +780,45 @@
       saveData();
     }
 
+    function renderMonsterPanel(logText = '') {
+      const hp = Math.max(0, appState.monsterHp);
+      const hpRate = `${hp}%`;
+      document.getElementById('monsterName').textContent = appState.mode === 'review' ? '復習まちがいモンスター' : 'まちがいモンスター';
+      document.getElementById('monsterState').textContent = hp <= 0 ? 'ぐったりしている…' : `HP ${hp}/100`;
+      document.getElementById('monsterHpBar').style.width = hpRate;
+      document.getElementById('monsterAvatar').textContent = appState.mode === 'review' ? '😵‍💫' : appState.monsterEmoji;
+      if (logText) document.getElementById('battleLog').textContent = logText;
+    }
+
+    function grantTreasure(triggerLabel) {
+      const type = getRandom(TREASURE_TYPES);
+      const chest = getRandom(CHESTS);
+      let item;
+      if (type === '言葉カード') item = `${getRandom(WORDS).word}カード`;
+      if (type === '称号') item = getRandom(TITLES);
+      if (type === '星') item = `スター +${Math.floor(Math.random() * 3) + 1}`;
+      if (type === 'スタンプ') item = getRandom(STAMPS);
+      const record = {id: Date.now() + Math.floor(Math.random() * 1000), trigger: triggerLabel, type, item};
+      appState.data.treasures = [...appState.data.treasures, record].slice(-80);
+      if (type === '称号') appState.data.titles = Array.from(new Set([...(appState.data.titles || []), item]));
+      if (type === 'スタンプ') appState.data.stamps = Array.from(new Set([...(appState.data.stamps || []), item]));
+      if (type === '星') appState.data.stars = (appState.data.stars || 0) + Number(item.replace('スター +', ''));
+      saveData();
+
+      const toast = document.getElementById('treasureToast');
+      toast.style.display = 'block';
+      toast.textContent = `${chest} 宝箱オープン！「${item}」をゲット！（${triggerLabel}）`;
+    }
+
+    function checkTreasureMilestone() {
+      TREASURE_MILESTONES.forEach((point) => {
+        if (appState.correct >= point && !appState.chestClaimedInRun.includes(point)) {
+          appState.chestClaimedInRun.push(point);
+          grantTreasure(`${point}問正解`);
+        }
+      });
+    }
+
     function answerQuestion(selectedIndex) {
       if (appState.answered) return;
       appState.answered = true;
@@ -625,9 +835,13 @@
         appState.correct += 1;
         appState.combo += 1;
         appState.data.totalCorrect += 1;
+        let damage = item.difficulty === 'easy' ? 12 : item.difficulty === 'normal' ? 16 : 20;
         if (appState.combo >= 3) {
           earned += 10;
+          damage += 18;
+          appState.specialCount += 1;
         }
+        appState.monsterHp = Math.max(0, appState.monsterHp - damage);
         appState.score += earned;
       } else {
         appState.combo = 0;
@@ -637,14 +851,25 @@
 
       const feedback = document.getElementById('feedback');
       const comboText = isCorrect && appState.combo >= 3 ? '\n🔥 3問連続正解ボーナス +10！' : '';
-      const reviewText = appState.mode === 'review' && isCorrect ? '\n📝 復習クリア！この問題は復習リストから外れるよ。' : '';
+      const reviewText = appState.mode === 'review' && isCorrect ? '\n📝 まちがいモンスターをやっつけた！復習クリア！' : '';
 
       if (isCorrect) {
         feedback.textContent = `○ 正解！\n${earned}ポイントゲット！${comboText}${reviewText}\n\n解説: ${item.explanation}`;
-        document.getElementById('guideMessage').textContent = '🎉 ことば博士「その調子！ことば力アップ！」';
+        const line = getRandom(CHARACTER_LINES.correct);
+        document.getElementById('guideMessage').textContent = `🎉 ことば博士「${line}」`;
+        const monster = document.getElementById('monsterAvatar');
+        monster.classList.remove('hit', 'special');
+        void monster.offsetWidth;
+        monster.classList.add(appState.combo >= 3 ? 'special' : 'hit');
+        const log = appState.combo >= 3
+          ? `⚡ 必殺技「ことばスラッシュ」！大ダメージ！ 残りHP ${appState.monsterHp}`
+          : `💥 ${appState.mode === 'review' ? '復習アタック！' : 'ことばアタック！'} 残りHP ${appState.monsterHp}`;
+        renderMonsterPanel(log);
+        checkTreasureMilestone();
       } else {
         feedback.textContent = `× おしい！\n正解は「${q.choices[q.answerIndex]}」だよ。\n\n意味: ${item.meaning}\n解説: ${item.explanation}\n例文: ${item.example}`;
-        document.getElementById('guideMessage').textContent = '👾 まちがいモンスター「だいじょうぶ！次で取り返そう！」';
+        document.getElementById('guideMessage').textContent = `👾 ことちゃん「${getRandom(CHARACTER_LINES.wrong)}」`;
+        renderMonsterPanel('😈 まちがいモンスターがニヤリ…でも次で逆転だ！');
       }
       feedback.style.display = 'block';
 
@@ -660,6 +885,7 @@
       const feedback = document.getElementById('feedback');
       feedback.style.display = 'block';
       feedback.textContent = `💡 ヒント: ${q.item.hint}\n（ヒントを使うとポイントが少し下がるよ）`;
+      document.getElementById('guideMessage').textContent = `🧙 かんちゃん「${getRandom(CHARACTER_LINES.hint)}」`;
     }
 
     function nextQuestion() {
@@ -680,19 +906,27 @@
 
     function finishQuiz() {
       appState.data.bestScore = Math.max(appState.data.bestScore, appState.score);
+      if (!appState.chestClaimedInRun.includes(100)) {
+        appState.chestClaimedInRun.push(100);
+        grantTreasure('10問クリア');
+      }
       saveData();
 
       const rank = calcRank(appState.score);
+      const monsterResult = appState.monsterHp <= 0 ? '✅ モンスター討伐成功！' : `⚠️ モンスターは逃げた…（残りHP ${appState.monsterHp}）`;
       document.getElementById('resultSummary').innerHTML = `
         <div class="box">正解数: ${appState.correct} / ${appState.deck.length}</div>
         <div class="box">スコア: ${appState.score}</div>
         <div class="box">ランク: ${rank}</div>
         <div class="box">モード: ${appState.mode === 'review' ? '復習' : appState.mode === 'mix' ? 'ミックス' : categoryLabel(appState.mode)}</div>
+        <div class="box">バトル結果: ${monsterResult}</div>
+        <div class="box">必殺技回数: ${appState.specialCount}</div>
       `;
       document.getElementById('resultDetail').innerHTML = `
         <p>総プレイ回数: <strong>${appState.data.totalPlays}</strong></p>
         <p>総正解数: <strong>${appState.data.totalCorrect}</strong></p>
         <p>最高スコア: <strong>${appState.data.bestScore}</strong></p>
+        <p>獲得スター: <strong>${appState.data.stars || 0}</strong></p>
       `;
 
       const guide = rank === 'S'
@@ -702,20 +936,34 @@
           : rank === 'B'
             ? '👍 かんちゃん「いい調子！復習でさらに強くなるよ！」'
             : '😊 ことば博士「まずは10問クリアがえらい！次はもっとのびるよ！」';
-      document.getElementById('resultGuide').textContent = guide;
+      document.getElementById('resultGuide').textContent = `${guide} ${getRandom(CHARACTER_LINES.result)}`;
       showScreen('resultScreen');
     }
 
     function renderTitleStats() {
       const last = appState.data.lastPlayedAt ? new Date(appState.data.lastPlayedAt).toLocaleString('ja-JP') : 'まだプレイしていないよ';
       const storageText = appState.storageAvailable ? '保存OK' : '保存OFF（この端末では保存できないよ）';
+      const lv = getPlayerLevel(appState.data.totalCorrect);
+      const nextNeed = lv.next ? `${Math.max(0, lv.next - appState.data.totalCorrect)}問` : 'MAXレベル！';
       document.getElementById('titleStats').innerHTML = `
         <div class="box">総プレイ: ${appState.data.totalPlays}</div>
         <div class="box">総正解: ${appState.data.totalCorrect}</div>
         <div class="box">最高スコア: ${appState.data.bestScore}</div>
+        <div class="box">プレイヤー: Lv.${lv.level} ${lv.title}</div>
+        <div class="box">次のレベルまで: ${nextNeed}</div>
         <div class="box">最終プレイ: ${last}</div>
         <div class="box">保存状態: ${storageText}</div>
         <div class="box">現在の難易度: ${appState.data.settings.difficulty === 'all' ? 'ぜんぶ' : difficultyLabel(appState.data.settings.difficulty)}</div>
+        <div class="box">称号: ${(appState.data.titles || []).length} / スタンプ: ${(appState.data.stamps || []).length}</div>
+      `;
+    }
+
+    function renderTodayWord() {
+      const today = getTodayWord();
+      document.getElementById('todayWordBox').innerHTML = `
+        <strong>📅 今日のことば: ${today.word}</strong>
+        <p style="margin:6px 0;"><strong>意味:</strong> ${today.meaning}</p>
+        <p style="margin:0;"><strong>例文:</strong> ${today.example}</p>
       `;
     }
 
@@ -737,7 +985,7 @@
         if (!got) {
           div.innerHTML = `
             <h4>？？？</h4>
-            <p class="small">${categoryLabel(word.category)} / ${difficultyLabel(word.difficulty)}</p>
+            <p class="small">${categoryLabel(word.category)} / ${difficultyLabel(word.difficulty)} / レア度: ${rarityLabel(word.difficulty)}</p>
             <p>まだ見つけていない言葉だよ。クイズで正解してゲットしよう！</p>
           `;
         } else {
@@ -746,7 +994,7 @@
             <p><strong>意味:</strong> ${word.meaning}</p>
             <p><strong>解説:</strong> ${word.explanation}</p>
             <p><strong>例文:</strong> ${word.example}</p>
-            <p class="small">${categoryLabel(word.category)} / ${difficultyLabel(word.difficulty)}</p>
+            <p class="small rare">${categoryLabel(word.category)} / ${difficultyLabel(word.difficulty)} / レア度: ${rarityLabel(word.difficulty)}</p>
           `;
         }
         list.appendChild(div);
@@ -765,11 +1013,11 @@
         return;
       }
 
-      msg.textContent = `📝 復習する問題は ${reviewItems.length} 件あるよ。もう一度チャレンジ！`;
+      msg.textContent = `👾 まちがいモンスターが ${reviewItems.length} 体いるよ。復習バトルでやっつけよう！`;
       reviewItems.slice(0, 12).forEach((item) => {
         const div = document.createElement('article');
         div.className = 'entry';
-        div.innerHTML = `<h4>${item.word}</h4><p><strong>ヒント:</strong> ${item.hint}</p><p class="small">${categoryLabel(item.category)}</p>`;
+        div.innerHTML = `<h4>👾 ${item.word}</h4><p><strong>弱点ヒント:</strong> ${item.hint}</p><p class="small">${categoryLabel(item.category)} / レア度 ${rarityLabel(item.difficulty)}</p>`;
         list.appendChild(div);
       });
     }
@@ -801,6 +1049,10 @@
         totalPlays: 0,
         totalCorrect: 0,
         bestScore: 0,
+        treasures: [],
+        titles: [],
+        stars: 0,
+        stamps: [],
         settings: {difficulty: 'all'},
         lastPlayedAt: ''
       };
@@ -836,6 +1088,7 @@
     function init() {
       loadData();
       registerEvents();
+      renderTodayWord();
       renderTitleStats();
       renderSettings();
     }
