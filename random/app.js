@@ -1,10 +1,46 @@
 (() => {
+  // {漢字|かんじ} と書くと、ふりがな（ruby）になる
   const CATEGORY_LABELS = {
     proverb: 'ことわざ',
-    idiom: '慣用句',
-    koji: '四字熟語',
-    phrase: '決まり文句'
+    idiom: '{慣用句|かんようく}',
+    koji: '{四字熟語|よじじゅくご}',
+    phrase: 'きまり{文句|もんく}'
   };
+
+  function esc(value) {
+    return String(value).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  function rb(markup) {
+    return esc(markup).replace(/\{([^|{}]+)\|([^{}]+)\}/g, '<ruby>$1<rt>$2</rt></ruby>');
+  }
+
+  // 例文の中の、そのことばに線を引く（「肩を落とした」のような形もさがす）
+  function exampleHtml(entry) {
+    const ex = entry.example || '';
+    let start = ex.indexOf(entry.word);
+    let len = entry.word.length;
+    if (start < 0 && entry.word.length > 2) {
+      const stem = entry.word.slice(0, -1);
+      start = ex.indexOf(stem);
+      len = stem.length;
+      if (start >= 0) {
+        while (len < stem.length + 3 && /[ぁ-ん]/.test(ex.charAt(start + len))) len += 1;
+      }
+    }
+    if (start < 0) return esc(ex);
+    return esc(ex.slice(0, start)) + '<b class="hl">' + esc(ex.slice(start, start + len)) + '</b>' + esc(ex.slice(start + len));
+  }
+
+  // ことばクエストの「ふりがな」せっていに あわせる
+  try {
+    const saved = JSON.parse(localStorage.getItem('kotobaQuestDataV1') || 'null');
+    if (saved && saved.settings && saved.settings.furigana === false) {
+      document.documentElement.classList.add('furi-off');
+    }
+  } catch (error) {
+    // 保存が使えないときは、ふりがなを表示したままにする
+  }
 
   const PHRASES = [
     {
@@ -129,6 +165,7 @@
   const template = document.querySelector('#card-template');
   const resultCount = document.querySelector('#result-count');
   const status = document.querySelector('#draw-status');
+  const toggleAll = document.querySelector('#toggle-all');
   const mixedCategories = ['proverb', 'idiom', 'phrase', 'koji'];
   let previousWords = new Set();
   let drawNumber = 0;
@@ -152,15 +189,23 @@
 
   function createCard(entry) {
     const card = template.content.firstElementChild.cloneNode(true);
-    card.dataset.category = entry.category;
-    card.querySelector('.category-badge').textContent = CATEGORY_LABELS[entry.category];
+    card.dataset.cat = entry.category;
+    card.querySelector('.tag').innerHTML = rb(CATEGORY_LABELS[entry.category]);
+    card.querySelector('.kana-mark').textContent = (entry.reading || entry.word).charAt(0);
     card.querySelector('.phrase').textContent = entry.word;
     const reading = card.querySelector('.reading');
     reading.textContent = entry.reading || '';
     reading.hidden = !entry.reading;
     card.querySelector('.meaning').textContent = entry.meaning;
-    card.querySelector('.example').textContent = entry.example;
+    card.querySelector('.example').innerHTML = exampleHtml(entry);
+    card.addEventListener('toggle', updateToggleAll);
     return card;
+  }
+
+  function updateToggleAll() {
+    const all = Array.from(cards.querySelectorAll('details'));
+    const allOpen = all.length > 0 && all.every((d) => d.open);
+    toggleAll.textContent = allOpen ? 'ぜんぶ とじる' : 'ぜんぶ ひらく';
   }
 
   function renderDraw() {
@@ -172,10 +217,18 @@
     previousWords = new Set(selection.map((entry) => entry.word));
     cards.dataset.count = String(selection.length);
     cards.replaceChildren(...selection.map(createCard));
-    resultCount.textContent = selection.length + '枚';
+    resultCount.textContent = selection.length + 'まい';
     drawNumber += 1;
-    status.textContent = drawNumber + '回目。' + selection.length + '枚のカードを引きました。';
+    status.textContent = drawNumber + '回目。カードを ' + selection.length + 'まい ひきました。';
+    updateToggleAll();
   }
+
+  toggleAll.addEventListener('click', () => {
+    const all = Array.from(cards.querySelectorAll('details'));
+    const open = !all.every((d) => d.open);
+    all.forEach((d) => { d.open = open; });
+    updateToggleAll();
+  });
 
   form.addEventListener('change', renderDraw);
   form.addEventListener('submit', (event) => {

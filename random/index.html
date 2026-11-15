@@ -2,456 +2,377 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f6f2e8">
-  <meta name="description" content="ことわざ・慣用句・四字熟語・会話の決まり文句をランダムに引いて、意味と例文を学べます。">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#F3F7FB">
+  <meta name="description" content="ことわざ・慣用句・四字熟語・きまり文句のかるたを引いて、意味と使い方を学べます。">
   <title>ことばくじ ｜ ことばクエスト</title>
   <style>
+    /* ことばクエスト本体（../index.html）と同じデザイン */
     :root {
-      color-scheme: light;
-      --paper: #f6f2e8;
-      --card: #fffdf7;
-      --ink: #25382f;
-      --muted: #52635a;
-      --line: #dcd9ca;
-      --green: #1c473a;
-      --green-dark: #17392f;
-      --serif: "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif CJK JP", serif;
+      --paper: #F3F7FB;
+      --grid: #DFE8F2;
+      --ink: #1E2B3A;
+      --ink-2: #4E5B6B;
+      --line: #CBD6E2;
+      --edge: #B9C6D4;
+      --red: #D7353D;
+      --red-edge: #A3232A;
+      --blue: #2E5FD3;
+      --focus: #FFC23C;
+
+      --c-idiom: #E06B12;   --t-idiom: #FFF2E6;   --d-idiom: #9E4808;
+      --c-proverb: #23945A; --t-proverb: #E7F6EE; --d-proverb: #17683E;
+      --c-koji: #3760D6;    --t-koji: #EBF0FE;    --d-koji: #2645A3;
+      --c-phrase: #11828F;  --t-phrase: #E2F4F6;  --d-phrase: #0B5F69;
+
+      --font-ui: "Hiragino Maru Gothic ProN", "ヒラギノ丸ゴ ProN", "BIZ UDPGothic", "BIZ UDPゴシック", "Meiryo", "Noto Sans JP", "Noto Sans CJK JP", system-ui, sans-serif;
+      --font-word: "UD Digi Kyokasho NP-B", "UD デジタル 教科書体 NP-B", "UD Digi Kyokasho N-B", "UD デジタル 教科書体 N-B", "Klee", "Hiragino Maru Gothic ProN", "ヒラギノ丸ゴ ProN", "BIZ UDPGothic", "Noto Sans JP", "Noto Sans CJK JP", sans-serif;
     }
+
+    [data-cat="idiom"]   { --cat: var(--c-idiom);   --cat-tint: var(--t-idiom);   --cat-dark: var(--d-idiom); }
+    [data-cat="proverb"] { --cat: var(--c-proverb); --cat-tint: var(--t-proverb); --cat-dark: var(--d-proverb); }
+    [data-cat="koji"]    { --cat: var(--c-koji);    --cat-tint: var(--t-koji);    --cat-dark: var(--d-koji); }
+    [data-cat="phrase"]  { --cat: var(--c-phrase);  --cat-tint: var(--t-phrase);  --cat-dark: var(--d-phrase); }
 
     * { box-sizing: border-box; }
 
+    html { -webkit-text-size-adjust: 100%; }
+
     body {
       margin: 0;
-      background: var(--paper);
       color: var(--ink);
-      font: 16px/1.65 system-ui, "Hiragino Kaku Gothic ProN", "Noto Sans CJK JP", sans-serif;
-      -webkit-text-size-adjust: 100%;
+      font-family: var(--font-ui);
+      font-size: 17px;
+      line-height: 1.7;
+      background-color: var(--paper);
+      background-image:
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+      background-size: 22px 22px;
+      overflow-wrap: anywhere;
+      word-break: auto-phrase;
+      text-wrap: pretty;
     }
 
-    button, select { font: inherit; }
+    button, input { font: inherit; color: inherit; }
+    button { -webkit-tap-highlight-color: transparent; }
+    p { margin: 0; }
+    h1, h2 { margin: 0; line-height: 1.35; }
 
-    :focus-visible {
-      outline: 3px solid #a0442b;
-      outline-offset: 3px;
+    [hidden] { display: none !important; }
+    :focus-visible { outline: 4px solid var(--focus); outline-offset: 3px; }
+
+    ruby { ruby-align: center; }
+    rt { font-size: 0.5em; font-weight: 700; letter-spacing: 0; }
+    .furi-off rt, .furi-off .furi { display: none; }
+
+    .sr-only {
+      position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0;
     }
 
     .wrap {
-      width: min(100% - 36px, 960px);
-      margin-inline: auto;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: max(14px, env(safe-area-inset-top)) 16px calc(40px + env(safe-area-inset-bottom));
     }
 
-    .site-header {
-      border-bottom: 1px solid var(--line);
-    }
+    .wrap > * + * { margin-top: 14px; }
 
-    .back-link {
+    .back {
       display: inline-flex;
-      min-height: 52px;
       align-items: center;
-      gap: 0.65em;
-      color: var(--green);
-      font-size: 0.9rem;
-      font-weight: 700;
+      gap: 6px;
+      min-height: 44px;
+      padding: 4px 16px 4px 12px;
+      border: 2px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      color: var(--ink);
+      font-size: 16px;
+      font-weight: 800;
       text-decoration: none;
     }
 
-    .back-link:hover { text-decoration: underline; }
-
-    main { padding: clamp(18px, 4vw, 36px) 0 56px; }
-
-    .hero {
-      position: relative;
-      isolation: isolate;
-      display: grid;
-      align-items: center;
-      min-height: 220px;
-      padding: clamp(24px, 5vw, 46px);
-      overflow: hidden;
-      border-radius: 20px;
-      background: radial-gradient(ellipse at 90% 15%, #2d5948, transparent 62%), var(--green-dark);
-      color: #fff8e9;
-    }
-
-    .hero h1 {
-      margin: 0 0 0.22em;
-      font: 700 clamp(2.6rem, 8vw, 4.85rem)/1.12 var(--serif);
-      letter-spacing: 0.04em;
-    }
-
-    .hero p {
-      max-width: 27em;
-      margin: 0;
-      color: #e6eee4;
-      font-size: clamp(0.94rem, 2.5vw, 1.05rem);
-      line-height: 1.85;
-    }
-
-    .hero-art {
-      position: absolute;
-      z-index: -1;
-      top: 50%;
-      right: 10%;
-      width: 155px;
-      height: 170px;
-      transform: translateY(-50%);
-    }
-
-    .hero-art::before, .hero-art::after {
-      position: absolute;
-      display: block;
-      width: 98px;
-      height: 140px;
-      border: 1px solid #9ab89f;
-      border-radius: 11px;
+    .back::before {
       content: "";
+      width: 9px; height: 9px;
+      border: solid currentColor;
+      border-width: 0 0 3px 3px;
+      transform: rotate(45deg);
     }
 
-    .hero-art::before {
-      inset: 10px auto auto 4px;
-      transform: rotate(-20deg);
-      background: repeating-linear-gradient(45deg, #69877538 0 1px, transparent 1px 7px), #315847;
+    .kana-mark {
+      display: inline-grid;
+      place-items: center;
+      flex: none;
+      width: 2.1em;
+      height: 2.1em;
+      border: 2.5px solid var(--red);
+      border-radius: 50%;
+      background: #fff;
+      color: var(--red);
+      font-family: var(--font-word);
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1;
     }
 
-    .hero-art::after {
-      inset: 10px 5px auto auto;
-      transform: rotate(14deg);
-      background: linear-gradient(#d1b481, #d1b481) 14px 14px / 23px 3px no-repeat,
-                  repeating-linear-gradient(#8c8e7738 0 1px, transparent 1px 7px) center 61% / 62% 37% no-repeat,
-                  #f1e7c9;
-      box-shadow: 0 9px 20px #0d2c2466;
-    }
+    .page-head { display: flex; align-items: center; gap: 12px; }
+    .page-head .kana-mark { font-size: 20px; border-width: 3px; }
+    .page-head h1 { font-family: var(--font-word); font-size: clamp(32px, 9vw, 44px); letter-spacing: 0.06em; }
+    .lead { color: var(--ink-2); font-weight: 800; word-break: keep-all; word-break: auto-phrase; }
 
     .controls {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
-      gap: 14px 20px;
-      align-items: end;
-      padding: 16px 18px;
-      margin-top: 14px;
-      border: 1px solid var(--line);
-      border-radius: 15px;
-      background: var(--card);
+      gap: 12px;
+      margin: 0;
+      padding: 14px 16px 16px;
+      border: 2px solid var(--line);
+      border-radius: 16px;
+      background: #fff;
+      box-shadow: 0 3px 0 var(--edge);
     }
 
-    .control-label {
-      display: block;
-      padding: 0;
-      margin-bottom: 5px;
-      color: var(--muted);
-      font-size: 0.85rem;
-      font-weight: 700;
-    }
+    .group { margin: 0; padding: 0; border: 0; min-inline-size: 0; }
+    .group legend { float: left; width: 100%; margin-bottom: 6px; padding: 0; font-size: 15px; font-weight: 800; color: var(--ink-2); }
+    .group legend + * { clear: both; }
 
-    .select, .draw-button {
-      min-height: 46px;
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chips.count { display: grid; grid-template-columns: minmax(0, 1.45fr) repeat(3, minmax(0, 1fr)); gap: 6px; }
+    .chip { position: relative; }
+    .chip input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+    .chip span {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       width: 100%;
-      padding: 8px 12px;
-      border: 1px solid #aea99a;
-      border-radius: 9px;
-      background: #fffdf9;
-      color: var(--ink);
-      font-weight: 650;
-    }
-
-    .draw-button {
-      min-width: 10em;
-      border-color: var(--green);
-      background: var(--green);
-      color: #fff;
+      min-height: 46px;
+      padding: 4px 14px;
+      border: 2px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      font-weight: 800;
       cursor: pointer;
     }
+    .chips.count .chip span { padding: 4px 4px; }
+    .chip input:checked + span { border-color: var(--ink); background: var(--ink); color: #fff; }
+    .chip input:focus-visible + span { outline: 4px solid var(--focus); outline-offset: 2px; }
 
-    .draw-button:hover { background: var(--green-dark); }
-
-    fieldset {
-      min-inline-size: 0;
-      padding: 0;
-      margin: 0;
-      border: 0;
-    }
-
-    .count-options {
-      display: grid;
-      grid-template-columns: minmax(0, 1.8fr) repeat(3, minmax(0, 1fr));
-      gap: 4px;
-      padding: 3px;
-      border: 1px solid #aea99a;
-      border-radius: 9px;
-      background: #ebe9dd;
-    }
-
-    .count-options label {
-      display: grid;
-      min-height: 38px;
-      place-items: center;
-      border-radius: 6px;
-      color: var(--green-dark);
-      font-size: 0.91rem;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .count-options label:hover { background: #fffdf9; }
-
-    .count-options input:checked + label {
-      background: #fffdf9;
-      color: var(--green-dark);
-      box-shadow: 0 1px 4px #25382f22, inset 0 0 0 1px #beb9aa;
-    }
-
-    .count-options input:focus-visible + label {
-      outline: 3px solid #a0442b;
-      outline-offset: 1px;
-    }
-
-    .sr-only {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      margin: -1px;
-      overflow: hidden;
-      clip-path: inset(50%);
-      white-space: nowrap;
-      border: 0;
-    }
-
-    .result-heading {
+    .draw {
       display: flex;
-      align-items: baseline;
-      gap: 12px;
-      margin: 22px 0 11px;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      min-height: 60px;
+      border: 0;
+      border-radius: 14px;
+      background: var(--red);
+      box-shadow: 0 4px 0 var(--red-edge);
+      color: #fff;
+      font-size: 21px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      transition: transform 0.06s ease, box-shadow 0.06s ease;
+    }
+    .draw:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--red-edge); }
+
+    .result-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .result-head h2 { font-size: 19px; }
+    .result-count { color: var(--ink-2); font-size: 15px; font-weight: 800; }
+    .toggle-all {
+      margin-left: auto;
+      min-height: 44px;
+      padding: 4px 12px;
+      border: 2px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
     }
 
-    .result-heading h2 {
-      margin: 0;
-      font: 700 1.28rem/1.4 var(--serif);
-    }
-
-    .result-count {
-      margin: 0;
-      color: var(--muted);
-      font-size: 0.86rem;
-      font-weight: 700;
-    }
-
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      align-items: start;
-      gap: 12px;
-    }
-
+    .cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; gap: 14px; }
     .cards[data-count="4"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
-    .word-card {
-      overflow: hidden;
-      border: 1px solid var(--line);
-      border-top: 3px solid var(--accent);
-      border-radius: 13px;
-      background: var(--card);
-      box-shadow: 0 2px 5px #3f362509;
-      animation: appear 200ms ease-out both;
+    .karuta {
+      position: relative;
+      background: #fff;
+      border: 3px solid var(--cat, var(--ink));
+      border-radius: 10px;
+      box-shadow:
+        inset 0 0 0 3px #fff,
+        inset 0 0 0 5px var(--cat-tint, #EEF2F7),
+        0 3px 0 var(--edge);
     }
 
-    .word-card[data-category="proverb"] {
-      --accent: #ae5e3d;
-      --badge: #f8e6d9;
-      --badge-ink: #813b24;
-    }
-
-    .word-card[data-category="idiom"] {
-      --accent: #527d66;
-      --badge: #e5eee5;
-      --badge-ink: #305746;
-    }
-
-    .word-card[data-category="koji"] {
-      --accent: #6575a0;
-      --badge: #e7eaf4;
-      --badge-ink: #41537b;
-    }
-
-    .word-card[data-category="phrase"] {
-      --accent: #a68242;
-      --badge: #f4ebd7;
-      --badge-ink: #735224;
-    }
+    .kcard { animation: deal 0.28s ease-out both; }
+    .kcard:nth-child(2) { animation-delay: 0.05s; }
+    .kcard:nth-child(3) { animation-delay: 0.1s; }
+    .kcard:nth-child(4) { animation-delay: 0.15s; }
+    .kcard:nth-child(5) { animation-delay: 0.2s; }
 
     .card-face {
-      display: flex;
-      min-height: 170px;
-      flex-direction: column;
-      align-items: flex-start;
-      padding: 14px 16px 11px;
+      display: grid;
+      gap: 2px;
+      padding: 14px 16px 12px;
       cursor: pointer;
       list-style: none;
     }
-
     .card-face::-webkit-details-marker { display: none; }
-    .card-face:hover { background: #f9f6ed; }
-    .card-face:focus-visible { outline-offset: -4px; }
+    .card-face:focus-visible { outline-offset: -6px; border-radius: 8px; }
 
-    .category-badge {
+    .card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .card-top .kana-mark { font-size: 15px; border-width: 2px; }
+
+    .tag {
       display: inline-block;
-      padding: 2px 8px;
-      border-radius: 4px;
-      background: var(--badge);
-      color: var(--badge-ink);
-      font-size: 0.76rem;
-      font-weight: 700;
+      padding: 1px 10px;
+      border-radius: 999px;
+      background: var(--cat-tint);
+      color: var(--cat-dark);
+      font-size: 13.5px;
+      font-weight: 800;
+      line-height: 1.8;
     }
 
+    .reading { display: block; margin-top: 6px; color: var(--ink-2); font-size: 14px; font-weight: 700; letter-spacing: 0.06em; line-height: 1.4; }
     .phrase {
-      margin-top: 8px;
-      color: var(--ink);
-      font: 700 clamp(1.15rem, 2.6vw, 1.55rem)/1.4 var(--serif);
-      overflow-wrap: anywhere;
-      line-break: strict;
-    }
-
-    .reading {
-      margin-top: 4px;
-      color: var(--muted);
-      font-size: 0.84rem;
-      overflow-wrap: anywhere;
+      display: block;
+      font-family: var(--font-word);
+      font-size: clamp(24px, 6.4vw, 30px);
+      font-weight: 700;
+      line-height: 1.35;
+      text-wrap: balance;
     }
 
     .card-action {
-      display: flex;
-      width: 100%;
+      display: inline-flex;
       align-items: center;
-      justify-content: space-between;
       gap: 8px;
-      padding-top: 9px;
-      margin-top: auto;
-      color: var(--green);
-      font-size: 0.82rem;
-      font-weight: 700;
+      justify-self: start;
+      margin-top: 8px;
+      padding: 2px 14px;
+      border-radius: 999px;
+      background: var(--cat-tint);
+      color: var(--cat-dark);
+      font-size: 14.5px;
+      font-weight: 800;
+      line-height: 1.9;
     }
+    .card-action .when-open { display: none; }
+    [open] .card-action .when-open { display: inline; }
+    [open] .card-action .when-closed { display: none; }
 
     .chevron {
-      width: 0.45em;
-      height: 0.45em;
-      margin-right: 2px;
+      width: 0.5em;
+      height: 0.5em;
       border: solid currentColor;
-      border-width: 0 2px 2px 0;
-      transform: translateY(-25%) rotate(45deg);
+      border-width: 0 2.5px 2.5px 0;
+      transform: translateY(-20%) rotate(45deg);
     }
+    [open] .chevron { transform: translateY(20%) rotate(225deg); }
 
-    [open] .chevron { transform: translateY(25%) rotate(225deg); }
-
-    .card-notes {
-      display: grid;
-      gap: 10px;
-      padding: 10px 16px 14px;
-      margin: 0;
-      border-top: 1px solid var(--line);
-      background: #faf7ee;
-      font-size: 0.94rem;
-      overflow-wrap: anywhere;
-    }
-
+    .card-notes { display: grid; gap: 10px; margin: 0; padding: 4px 16px 16px; animation: open 0.2s ease-out both; }
     .card-notes dt {
-      color: var(--green);
-      font-size: 0.8rem;
-      font-weight: 700;
+      display: inline-block;
+      margin-bottom: 2px;
+      padding: 0 8px;
+      border-radius: 6px;
+      background: var(--cat-tint);
+      color: var(--cat-dark);
+      font-size: 13.5px;
+      font-weight: 800;
+      line-height: 1.8;
     }
+    .card-notes dd { margin: 0; }
+    .hl { background: linear-gradient(transparent 58%, #FFE27A 58%); font-weight: 800; }
 
-    .card-notes dd { margin: 1px 0 0; }
-
-    @keyframes appear {
-      from { opacity: 0; transform: translateY(4px); }
-      to { opacity: 1; transform: translateY(0); }
+    @keyframes deal {
+      from { opacity: 0; transform: translateY(8px) rotate(-1.5deg); }
+      to { opacity: 1; transform: none; }
+    }
+    @keyframes open {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: none; }
     }
 
     @media (max-width: 760px) {
-      .controls { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .draw-button { grid-column: 1 / -1; }
-      .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .hero-art { right: 6%; }
+      .cards, .cards[data-count="4"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 
     @media (max-width: 560px) {
-      .wrap { width: calc(100% - 28px); }
-      .hero { min-height: 175px; }
-      .hero h1 { font-size: clamp(2.18rem, 9vw, 3rem); }
-      .hero p { max-width: 20em; }
-      .hero-art { right: -45px; transform: translateY(-50%) scale(0.78); opacity: 0.18; }
-      .controls { grid-template-columns: minmax(0, 1fr); padding: 12px; gap: 10px; }
       .cards, .cards[data-count="4"] { grid-template-columns: minmax(0, 1fr); }
-      .card-face { min-height: 132px; }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .word-card { animation: none; }
+      *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-delay: 0s !important;
+        transition-duration: 0.001ms !important;
+      }
     }
   </style>
   <script src="../words.js" defer></script>
   <script src="app.js" defer></script>
 </head>
 <body>
-  <header class="site-header">
-    <div class="wrap">
-      <a class="back-link" href="../index.html"><span aria-hidden="true">←</span> ことばクエスト</a>
-    </div>
-  </header>
   <main class="wrap">
-    <div class="hero">
-      <div>
-        <h1>ことばくじ</h1>
-        <p>カードを開くと、ことばの意味と使い方がわかります。</p>
-      </div>
-      <div class="hero-art" aria-hidden="true"></div>
-    </div>
-    <form id="draw-form" class="controls" aria-label="くじの設定">
-      <div>
-        <label for="category" class="control-label">ことばの種類</label>
-        <select id="category" name="category" class="select">
-          <option value="all">すべてミックス</option>
-          <option value="proverb">ことわざ</option>
-          <option value="idiom">慣用句</option>
-          <option value="koji">四字熟語</option>
-          <option value="phrase">会話の決まり文句</option>
-        </select>
-      </div>
-      <fieldset>
-        <legend class="control-label">カードの枚数</legend>
-        <div class="count-options">
-          <input class="sr-only" id="count-auto" type="radio" name="count" value="auto" aria-label="おまかせ、3〜5枚" checked>
-          <label for="count-auto">おまかせ</label>
-          <input class="sr-only" id="count-three" type="radio" name="count" value="3">
-          <label for="count-three">3枚</label>
-          <input class="sr-only" id="count-four" type="radio" name="count" value="4">
-          <label for="count-four">4枚</label>
-          <input class="sr-only" id="count-five" type="radio" name="count" value="5">
-          <label for="count-five">5枚</label>
+    <a class="back" href="../index.html">ことばクエスト</a>
+
+    <header class="page-head">
+      <span class="kana-mark" aria-hidden="true">こ</span>
+      <h1>ことばくじ</h1>
+    </header>
+    <p class="lead">カードを ひらくと、いみと つかいかたが わかるよ。</p>
+
+    <form id="draw-form" class="controls" aria-label="くじの せってい">
+      <fieldset class="group">
+        <legend>ことばの しゅるい</legend>
+        <div class="chips">
+          <label class="chip"><input type="radio" name="category" value="all" checked><span>ぜんぶ</span></label>
+          <label class="chip"><input type="radio" name="category" value="proverb"><span>ことわざ</span></label>
+          <label class="chip"><input type="radio" name="category" value="idiom"><span><ruby>慣用句<rt>かんようく</rt></ruby></span></label>
+          <label class="chip"><input type="radio" name="category" value="koji"><span><ruby>四字熟語<rt>よじじゅくご</rt></ruby></span></label>
+          <label class="chip"><input type="radio" name="category" value="phrase"><span>きまり<ruby>文句<rt>もんく</rt></ruby></span></label>
         </div>
       </fieldset>
-      <button class="draw-button" type="submit">引き直す</button>
+      <fieldset class="group">
+        <legend>カードの まいすう</legend>
+        <div class="chips count">
+          <label class="chip"><input type="radio" name="count" value="auto" aria-label="おまかせ（3〜5まい）" checked><span>おまかせ</span></label>
+          <label class="chip"><input type="radio" name="count" value="3"><span>3まい</span></label>
+          <label class="chip"><input type="radio" name="count" value="4"><span>4まい</span></label>
+          <label class="chip"><input type="radio" name="count" value="5"><span>5まい</span></label>
+        </div>
+      </fieldset>
+      <button class="draw" type="submit">もう一回 ひく</button>
     </form>
+
     <section aria-labelledby="result-title">
-      <div class="result-heading">
-        <h2 id="result-title">今回のことば</h2>
+      <div class="result-head">
+        <h2 id="result-title">こんかいの ことば</h2>
         <p class="result-count" id="result-count"></p>
+        <button class="toggle-all" type="button" id="toggle-all">ぜんぶ ひらく</button>
       </div>
       <p class="sr-only" id="draw-status" role="status"></p>
-      <div id="cards" class="cards"></div>
-      <noscript><p>カードを引くにはJavaScriptを有効にしてください。</p></noscript>
+      <div id="cards" class="cards" style="margin-top:12px"></div>
+      <noscript><p>カードを ひくには、JavaScript を オンに してね。</p></noscript>
     </section>
   </main>
+
   <template id="card-template">
-    <details class="word-card">
+    <details class="karuta kcard">
       <summary class="card-face">
-        <span class="category-badge"></span>
+        <span class="card-top"><span class="tag"></span><span class="kana-mark" aria-hidden="true"></span></span>
+        <span class="reading furi"></span>
         <span class="phrase"></span>
-        <span class="reading"></span>
-        <span class="card-action">意味と例文<span class="chevron" aria-hidden="true"></span></span>
+        <span class="card-action"><span class="when-closed">ひらいて いみを 見る</span><span class="when-open">とじる</span><span class="chevron" aria-hidden="true"></span></span>
       </summary>
       <dl class="card-notes">
-        <div><dt>意味</dt><dd class="meaning"></dd></div>
-        <div><dt>例文</dt><dd class="example"></dd></div>
+        <div><dt>いみ</dt><dd class="meaning"></dd></div>
+        <div><dt>つかいかた</dt><dd class="example"></dd></div>
       </dl>
     </details>
   </template>
