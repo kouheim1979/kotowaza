@@ -3,477 +3,1075 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>ことばクエスト 〜慣用句・ことわざ・古事成語バトル〜</title>
+  <meta name="theme-color" content="#F3F7FB" />
+  <meta name="description" content="小学4年生向けの、慣用句・ことわざ・四字熟語のクイズバトル。正解すると、ことばのかるたが図鑑に集まります。" />
+  <title>ことばクエスト 〜慣用句・ことわざ・四字熟語バトル〜</title>
   <style>
+    /* ============ デザインの基本 ============
+       ノート（方眼）の上に、かるたの札を並べるイメージ。
+       赤は「赤ペン」と「かるたの頭文字」の色。正解は赤い ○、はなまる。 */
     :root {
-      --bg: #f7fbff;
-      --card: #ffffff;
-      --text: #16324f;
-      --sub: #385a7c;
-      --primary: #2d7ff9;
-      --primary-press: #1f66d1;
-      --accent: #00a67e;
-      --warn: #d16f00;
-      --danger: #c0392b;
-      --border: #c8d9ec;
-      --shadow: 0 6px 16px rgba(22, 50, 79, 0.1);
+      --paper: #F3F7FB;
+      --grid: #DFE8F2;
+      --card: #FFFFFF;
+      --ink: #1E2B3A;
+      --ink-2: #4E5B6B;
+      --line: #CBD6E2;
+      --edge: #B9C6D4;
+      --red: #D7353D;
+      --red-edge: #A3232A;
+      --red-tint: #FFF0F0;
+      --blue: #2E5FD3;
+      --blue-tint: #EEF3FE;
+      --gold: #E9A800;
+      --star: #B07D00;
+      --focus: #FFC23C;
+
+      --c-idiom: #E06B12;   --t-idiom: #FFF2E6;   --d-idiom: #9E4808;
+      --c-proverb: #23945A; --t-proverb: #E7F6EE; --d-proverb: #17683E;
+      --c-koji: #3760D6;    --t-koji: #EBF0FE;    --d-koji: #2645A3;
+      --c-mix: #C2387F;     --t-mix: #FBEAF3;     --d-mix: #8F2459;
+      --c-review: #7350CC;  --t-review: #F1ECFB;  --d-review: #5434A8;
+
+      --font-ui: "Hiragino Maru Gothic ProN", "ヒラギノ丸ゴ ProN", "BIZ UDPGothic", "BIZ UDPゴシック", "Meiryo", "Noto Sans JP", "Noto Sans CJK JP", system-ui, sans-serif;
+      --font-word: "UD Digi Kyokasho NP-B", "UD デジタル 教科書体 NP-B", "UD Digi Kyokasho N-B", "UD デジタル 教科書体 N-B", "Klee", "Hiragino Maru Gothic ProN", "ヒラギノ丸ゴ ProN", "BIZ UDPGothic", "Noto Sans JP", "Noto Sans CJK JP", sans-serif;
+
+      --r-card: 10px;
+      --r-btn: 14px;
     }
+
+    [data-cat="idiom"]   { --cat: var(--c-idiom);   --cat-tint: var(--t-idiom);   --cat-dark: var(--d-idiom); }
+    [data-cat="proverb"] { --cat: var(--c-proverb); --cat-tint: var(--t-proverb); --cat-dark: var(--d-proverb); }
+    [data-cat="koji"]    { --cat: var(--c-koji);    --cat-tint: var(--t-koji);    --cat-dark: var(--d-koji); }
+    [data-cat="mix"]     { --cat: var(--c-mix);     --cat-tint: var(--t-mix);     --cat-dark: var(--d-mix); }
+    [data-cat="review"]  { --cat: var(--c-review);  --cat-tint: var(--t-review);  --cat-dark: var(--d-review); }
 
     * { box-sizing: border-box; }
 
+    html { -webkit-text-size-adjust: 100%; }
+
     body {
       margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
-      font-size: 16px;
-      line-height: 1.6;
-      -webkit-text-size-adjust: 100%;
+      color: var(--ink);
+      font-family: var(--font-ui);
+      font-size: 17px;
+      line-height: 1.7;
+      background-color: var(--paper);
+      background-image:
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+      background-size: 22px 22px;
+      overflow-wrap: anywhere;
+      word-break: auto-phrase;
+      text-wrap: pretty;
+    }
+
+    /* 分かち書きの文は、スペースのところで改行する（Safari は keep-all、Chrome は auto-phrase） */
+    .bubble, .mode-sample, .qask, .fb-line, .fb-sub, .battle-log, .player-next, .setting-note,
+    .tagline, .sheet-body p, .result-count, .panel h3, .notice, .sheet h3 {
+      word-break: keep-all;
+      word-break: auto-phrase;
+    }
+
+    button, input, select { font: inherit; color: inherit; }
+    button { -webkit-tap-highlight-color: transparent; }
+    p { margin: 0; }
+    h1, h2, h3 { margin: 0; line-height: 1.35; }
+
+    ruby { ruby-align: center; }
+    rt { font-size: 0.5em; font-weight: 700; letter-spacing: 0; }
+    .furi-off rt, .furi-off .furi { display: none; }
+
+    [hidden] { display: none !important; }
+
+    :focus-visible { outline: 4px solid var(--focus); outline-offset: 3px; }
+    h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus, .qcard:focus { outline: none; }
+
+    .sr-only {
+      position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0;
     }
 
     .app {
-      max-width: 860px;
+      overflow-x: hidden;
+      overflow-x: clip;
+      max-width: 680px;
       margin: 0 auto;
-      padding: 12px 12px 48px;
+      padding: max(14px, env(safe-area-inset-top)) 16px calc(36px + env(safe-area-inset-bottom));
     }
 
-    .screen {
-      display: none;
-      background: var(--card);
-      border: 2px solid var(--border);
-      border-radius: 16px;
-      box-shadow: var(--shadow);
-      padding: 16px;
-      margin-top: 12px;
-    }
-
+    .screen { display: none; }
     .screen.active { display: block; }
+    .screen > * + * { margin-top: 14px; }
+    .screen > .sr-only + * { margin-top: 0; }
 
-    h1 {
-      margin: 8px 0 12px;
-      font-size: clamp(24px, 5vw, 34px);
-      line-height: 1.3;
-    }
-
-    h2 {
-      margin: 0 0 10px;
-      font-size: clamp(22px, 4.4vw, 30px);
-      line-height: 1.4;
-    }
-
-    h3 { font-size: 22px; margin: 8px 0; }
-
-    p, li { font-size: 18px; }
-
-    .subtitle {
-      color: var(--sub);
-      margin-top: 0;
-      font-weight: 700;
-      font-size: 20px;
-    }
-
-    .row { display: flex; gap: 10px; flex-wrap: wrap; }
-
+    /* ============ ボタン ============ */
     .btn {
-      min-height: 46px;
-      padding: 10px 14px;
-      border: 2px solid transparent;
-      border-radius: 12px;
-      font-size: 18px;
-      font-weight: 700;
-      cursor: pointer;
-      color: #fff;
-      background: var(--primary);
-      transition: transform 0.08s ease, background 0.15s ease;
-      width: 100%;
-    }
-
-    .btn:hover { background: var(--primary-press); }
-    .btn:active { transform: scale(0.98); }
-    .btn:focus-visible { outline: 3px solid #ffb703; outline-offset: 2px; }
-
-    .btn.link {
       display: flex;
       align-items: center;
       justify-content: center;
-      text-decoration: none;
-    }
-
-    .btn.secondary { background: #556f8b; }
-    .btn.good { background: var(--accent); }
-    .btn.warn { background: var(--warn); }
-    .btn.danger { background: var(--danger); }
-
-    .menu-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 10px;
-    }
-
-    .chip {
-      display: inline-block;
-      background: #eaf3ff;
-      border: 1px solid #bfd7f6;
-      border-radius: 999px;
-      padding: 4px 10px;
-      font-weight: 700;
-      margin-right: 6px;
-      margin-bottom: 6px;
-      font-size: 15px;
-    }
-
-    .status {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(120px, 1fr));
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-
-    .status .box {
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 8px;
-      background: #fafdff;
-      font-weight: 700;
-    }
-
-    .question {
-      border: 2px solid #d4e5fa;
-      border-radius: 12px;
-      padding: 12px;
-      margin: 10px 0;
-      background: #f8fcff;
-    }
-
-    .question .prompt {
-      font-size: 23px;
-      font-weight: 800;
-      line-height: 1.4;
-    }
-
-    .choices { display: grid; gap: 8px; margin-top: 10px; }
-
-    .choice {
-      min-height: 48px;
+      gap: 6px;
       width: 100%;
-      text-align: left;
-      border: 2px solid #9fc4f4;
-      border-radius: 12px;
+      min-height: 56px;
+      padding: 10px 18px;
+      border: 2px solid transparent;
+      border-radius: var(--r-btn);
+      font-size: 19px;
+      font-weight: 800;
+      line-height: 1.35;
+      text-align: center;
+      text-decoration: none;
+      cursor: pointer;
+      transition: transform 0.06s ease, box-shadow 0.06s ease;
+    }
+
+    .btn.primary { background: var(--red); color: #fff; box-shadow: 0 4px 0 var(--red-edge); }
+    .btn.primary:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--red-edge); }
+    .btn.ghost { background: #fff; color: var(--ink); border-color: var(--line); box-shadow: 0 4px 0 var(--edge); }
+    .btn.ghost:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--edge); }
+    .btn.danger { background: #fff; color: var(--red); border-color: var(--red); box-shadow: 0 4px 0 var(--red-edge); }
+    .btn.danger:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--red-edge); }
+    .btn.small { min-height: 46px; font-size: 16px; padding: 6px 14px; }
+    .btn:disabled { cursor: default; opacity: 0.6; transform: none; }
+    .btn small { font-size: 0.8em; font-weight: 700; }
+
+    .back {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      flex: none;
+      min-height: 44px;
+      padding: 4px 16px 4px 12px;
+      border: 2px solid var(--line);
+      border-radius: 999px;
       background: #fff;
-      color: var(--text);
-      font-size: 18px;
-      font-weight: 700;
-      padding: 10px;
+      font-size: 16px;
+      font-weight: 800;
       cursor: pointer;
     }
 
-    .choice:hover { background: #eef6ff; }
-    .choice:focus-visible { outline: 3px solid #ffb703; }
-    .choice[disabled] { opacity: 0.8; cursor: not-allowed; }
-
-    .feedback {
-      border-radius: 10px;
-      padding: 10px;
-      margin-top: 10px;
-      border: 2px solid #bdd8f9;
-      background: #f4f9ff;
-      font-size: 18px;
-      white-space: pre-line;
+    .back::before {
+      content: "";
+      width: 9px; height: 9px;
+      border: solid currentColor;
+      border-width: 0 0 3px 3px;
+      transform: rotate(45deg);
+      margin-right: 2px;
     }
 
-    .guide {
-      border-left: 6px solid #ffd166;
-      background: #fff8e6;
-      padding: 10px;
-      border-radius: 8px;
+    .back.quit::before { display: none; }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 52px;
+    }
+
+    .topbar h2 { font-size: 23px; }
+
+    /* ============ かるた札 ============ */
+    .karuta {
+      position: relative;
+      background: var(--card);
+      border: 3px solid var(--cat, var(--ink));
+      border-radius: var(--r-card);
+      box-shadow:
+        inset 0 0 0 3px #fff,
+        inset 0 0 0 5px var(--cat-tint, #EEF2F7),
+        0 3px 0 var(--edge);
+    }
+
+    .kana-mark {
+      display: inline-grid;
+      place-items: center;
+      flex: none;
+      width: 2.1em;
+      height: 2.1em;
+      border: 2.5px solid var(--red);
+      border-radius: 50%;
+      background: #fff;
+      color: var(--red);
+      font-family: var(--font-word);
       font-size: 18px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .word-text {
+      display: block;
+      font-family: var(--font-word);
+      font-weight: 700;
+      font-size: clamp(27px, 7.6vw, 36px);
+      line-height: 1.3;
+      letter-spacing: 0.02em;
+      text-wrap: balance;
+    }
+    .word-text.long { font-size: clamp(23px, 6.4vw, 30px); }
+
+    .reading-line {
+      display: block;
+      color: var(--ink-2);
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      line-height: 1.4;
+    }
+
+    .word-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 1px 10px;
+      border-radius: 999px;
+      background: #EEF2F7;
+      color: var(--ink-2);
+      font-size: 13.5px;
+      font-weight: 800;
+      line-height: 1.8;
+    }
+
+    .tag-cat { background: var(--cat-tint); color: var(--cat-dark); }
+
+    .stars { color: var(--star); font-size: 14px; letter-spacing: 1px; font-style: normal; }
+
+    .notes { display: grid; gap: 10px; margin: 12px 0 0; }
+    .notes dt {
+      display: inline-block;
+      margin-bottom: 2px;
+      padding: 0 8px;
+      border-radius: 6px;
+      background: var(--cat-tint, #EEF2F7);
+      color: var(--cat-dark, var(--ink-2));
+      font-size: 13.5px;
+      font-weight: 800;
+      line-height: 1.8;
+    }
+    .notes dd { margin: 0; }
+
+    .hl { background: linear-gradient(transparent 58%, #FFE27A 58%); font-weight: 800; }
+
+    .card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
       margin-bottom: 8px;
     }
 
-    .small { font-size: 16px; color: var(--sub); }
-    .small.rare { font-weight: 800; color: #7a4b00; }
+    .card-label { color: var(--ink-2); font-size: 15px; font-weight: 800; }
 
-    .today-word {
-      background: #eef8ff;
-      border: 2px dashed #9ec8f7;
-      border-radius: 12px;
-      padding: 10px;
-      margin-bottom: 10px;
+    /* ============ はかせ（さる） ============ */
+    .prof { display: block; flex: none; width: 58px; height: 58px; }
+    .prof svg { display: block; width: 100%; height: 100%; }
+    .prof .eyes-happy { display: none; }
+    .prof.happy .eyes-open { display: none; }
+    .prof.happy .eyes-happy { display: inline; }
+
+    .prof-row { display: flex; align-items: flex-start; gap: 10px; }
+
+    .bubble {
+      position: relative;
+      flex: 1;
+      min-height: 50px;
+      padding: 10px 14px;
+      border: 2px solid var(--line);
+      border-radius: 16px;
+      background: #fff;
+      font-weight: 700;
     }
 
-    .battle-board {
-      border: 2px solid #cde0f6;
-      background: #f6fbff;
-      border-radius: 12px;
-      padding: 10px;
-      margin-bottom: 10px;
-    }
-
-    .monster-row {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-    }
-
-    .monster-avatar {
-      font-size: clamp(40px, 8vw, 58px);
-      filter: drop-shadow(0 2px 0 #b6d3f2);
-      transition: transform 0.2s ease;
-    }
-
-    .monster-avatar.hit { animation: hitShake 0.45s ease; }
-    .monster-avatar.special { animation: flashStrike 0.75s ease; }
-
-    .monster-hp {
-      width: 100%;
+    .bubble::before {
+      content: "";
+      position: absolute;
+      left: -9px;
+      top: 17px;
+      width: 14px;
       height: 14px;
-      background: #d9e9fa;
+      background: #fff;
+      border-left: 2px solid var(--line);
+      border-bottom: 2px solid var(--line);
+      transform: rotate(45deg);
+    }
+
+    /* ============ タイトル ============ */
+    .logo { display: flex; align-items: center; gap: 12px; padding-top: 6px; }
+    .logo .kana-mark { font-size: 21px; border-width: 3px; }
+    .logo h1 {
+      font-family: var(--font-word);
+      font-size: clamp(34px, 10vw, 46px);
+      letter-spacing: 0.05em;
+    }
+
+    .screen > .tagline { margin-top: 2px; color: var(--ink-2); font-weight: 800; }
+
+    .today { padding: 14px 16px 16px; }
+
+    .btn.start { min-height: 66px; font-size: 23px; letter-spacing: 0.08em; }
+
+    .player {
+      padding: 12px 14px 14px;
+      border: 2px solid var(--line);
+      border-radius: 16px;
+      background: #fff;
+      box-shadow: 0 3px 0 var(--edge);
+    }
+
+    .player-lv { display: flex; align-items: center; gap: 10px; font-size: 19px; font-weight: 800; }
+    .lv { padding: 0 8px; border-radius: 6px; background: var(--ink); color: #fff; font-size: 15px; line-height: 1.7; }
+
+    .meter { height: 12px; margin-top: 8px; overflow: hidden; border-radius: 999px; background: #E6EDF5; }
+    .meter > span { display: block; height: 100%; border-radius: inherit; background: var(--gold); }
+
+    .player-next { margin-top: 4px; color: var(--ink-2); font-size: 15px; font-weight: 700; }
+    .player-next b { color: var(--ink); font-size: 1.15em; }
+
+    .player-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 16px;
+      margin: 10px 0 0;
+      padding: 10px 0 0;
+      border-top: 2px dashed #E3EAF2;
+      list-style: none;
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .player-stats b { font-size: 1.15em; }
+    .player-stamps { margin-top: 6px; font-size: 15px; font-weight: 700; color: var(--ink-2); }
+    .player-stamps span { font-size: 20px; letter-spacing: 2px; }
+
+    .notice {
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: #FFF6DC;
+      border: 2px solid #F1D58A;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .nav-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .nav-grid .btn { position: relative; flex-direction: column; gap: 2px; min-height: 84px; font-size: 16.5px; }
+    .nav-grid .ico { font-size: 27px; line-height: 1.2; }
+
+    .count-badge {
+      position: absolute;
+      top: 6px;
+      right: 8px;
+      min-width: 26px;
+      padding: 0 7px;
       border-radius: 999px;
-      overflow: hidden;
-      border: 1px solid #abc9ea;
-      margin-top: 8px;
+      background: var(--red);
+      color: #fff;
+      font-size: 13px;
+      line-height: 1.8;
     }
 
-    .monster-hp-bar {
-      height: 100%;
+    /* ============ モードえらび ============ */
+    .mode-list { display: grid; gap: 12px; }
+
+    .mode-card {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 12px;
       width: 100%;
-      background: linear-gradient(90deg, #ff5f6d, #ff9f43);
-      transition: width 0.35s ease;
+      padding: 14px 14px 14px 12px;
+      text-align: left;
+      cursor: pointer;
+      transition: transform 0.06s ease, box-shadow 0.06s ease;
     }
 
-    .battle-log {
-      margin-top: 6px;
+    .mode-card:active {
+      transform: translateY(2px);
+      box-shadow: inset 0 0 0 3px #fff, inset 0 0 0 5px var(--cat-tint), 0 1px 0 var(--edge);
+    }
+
+    .mode-card .kana-mark { font-size: 20px; }
+    .mode-name { display: block; color: var(--cat-dark); font-family: var(--font-word); font-size: 23px; font-weight: 700; line-height: 1.4; }
+    .mode-sample { display: block; color: var(--ink-2); font-size: 14.5px; font-weight: 700; line-height: 1.5; }
+    .mode-side { display: grid; justify-items: end; color: var(--ink-2); font-size: 13px; font-weight: 700; line-height: 1.3; white-space: nowrap; }
+    .mode-side b { color: var(--ink); font-size: 20px; }
+
+    .mode-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; color: var(--ink-2); font-weight: 700; }
+    .linkish { padding: 6px 4px; border: 0; background: none; color: var(--blue); font-weight: 800; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+
+    /* ============ クイズ ============ */
+    .quiz-top { display: flex; align-items: center; gap: 10px; }
+    .progress { display: flex; flex: 1; align-items: center; justify-content: center; }
+    .dots { display: flex; gap: 5px; }
+    .dot { width: 12px; height: 12px; border: 2px solid var(--line); border-radius: 50%; background: #fff; }
+    .dot.now { border-color: var(--ink); border-width: 3px; transform: scale(1.25); }
+    .dot.ok { border-color: var(--red); border-width: 3px; }
+    .dot.ng { border-color: #A5B1BF; background: #A5B1BF; }
+    .score { flex: none; min-width: 64px; text-align: right; font-size: 18px; font-weight: 800; }
+
+    .battle {
+      display: grid;
+      grid-template-columns: 70px minmax(0, 1fr);
+      align-items: center;
+      gap: 12px;
+      padding: 8px 14px 8px 10px;
+      border: 2px solid var(--line);
+      border-radius: 16px;
+      background: #fff;
+      box-shadow: 0 3px 0 var(--edge);
+    }
+
+    .monster { width: 70px; height: 70px; }
+    .monster svg { display: block; width: 100%; height: 100%; transform: scale(var(--s, 1)); transform-origin: 50% 90%; transition: transform 0.35s ease, opacity 0.35s ease; }
+    .monster .mon-eyes-hit, .monster .mon-eyes-down { display: none; }
+    .monster.hit .mon-eyes, .monster.down .mon-eyes { display: none; }
+    .monster.hit .mon-eyes-hit { display: inline; }
+    .monster.down:not(.hit) .mon-eyes-down { display: inline; }
+    .monster.hit { animation: shake 0.45s ease; }
+    .monster.special { animation: zap 0.7s ease; }
+    .monster.down svg { opacity: 0.45; }
+
+    .battle-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .battle-row strong { font-size: 15.5px; }
+    .combo { padding: 0 10px; border-radius: 999px; background: var(--red); color: #fff; font-size: 13.5px; font-weight: 800; line-height: 1.8; white-space: nowrap; }
+    .hp { height: 12px; margin-top: 4px; overflow: hidden; border: 1.5px solid var(--line); border-radius: 999px; background: #EEF2F7; }
+    .hp-bar { display: block; width: 100%; height: 100%; background: linear-gradient(90deg, #FF6B5A, #FFB443); transition: width 0.35s ease; }
+    .battle-log { min-height: 1.6em; margin-top: 3px; color: var(--ink-2); font-size: 14.5px; font-weight: 700; line-height: 1.6; }
+
+    .qcard { padding: 14px 16px 16px; }
+    .qcard-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 10px; padding-right: 8px; }
+    .qcard-tags .stars { margin-left: auto; }
+    .qcard .word-text { font-size: clamp(29px, 8.4vw, 40px); }
+    .qcard .word-text.long { font-size: clamp(25px, 7vw, 32px); }
+    .qmeaning { font-size: 21px; font-weight: 800; line-height: 1.55; text-wrap: balance; }
+    .qstory { padding: 10px 12px; border-radius: 10px; background: var(--cat-tint); }
+    .qstory-label { color: var(--cat-dark); font-size: 13.5px; font-weight: 800; }
+    .qstory p { margin-top: 2px; font-size: 19px; font-weight: 700; line-height: 1.6; }
+    .qask { margin-top: 10px; font-size: 18px; font-weight: 800; }
+
+    .hanamaru {
+      position: absolute;
+      top: -16px;
+      right: -10px;
+      width: 82px;
+      height: 82px;
+      color: var(--red);
+      pointer-events: none;
+      animation: stamp 0.4s cubic-bezier(0.2, 1.3, 0.4, 1) both;
+    }
+
+    .choices { display: grid; gap: 11px; }
+    .choices.grid { grid-template-columns: 1fr 1fr; }
+
+    .choice {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      min-height: 62px;
+      padding: 11px 44px 11px 12px;
+      border: 2px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      box-shadow: 0 4px 0 var(--edge);
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1.5;
+      text-align: left;
+      cursor: pointer;
+      transition: transform 0.06s ease, box-shadow 0.06s ease, background 0.15s ease, opacity 0.2s ease;
+    }
+
+    .choice:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 var(--edge); }
+    .choice:disabled { cursor: default; color: var(--ink); }
+
+    .choice-num {
+      display: grid;
+      place-items: center;
+      flex: none;
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: var(--ink);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .choices.grid .choice {
+      flex-direction: column;
+      justify-content: center;
+      gap: 0;
+      min-height: 112px;
+      padding: 34px 10px 14px;
+      text-align: center;
+    }
+
+    .choices.grid .choice-num { position: absolute; top: 8px; left: 8px; width: 25px; height: 25px; font-size: 13.5px; }
+    .choices.grid .reading-line { font-size: 12px; letter-spacing: 0.03em; }
+    .choice-word { font-family: var(--font-word); font-size: 21px; font-weight: 700; line-height: 1.4; text-wrap: balance; }
+
+    .choices.answered .choice:not(.is-answer):not(.is-wrong) { opacity: 0.5; }
+    .choice.is-answer { border-color: var(--red); background: var(--red-tint); }
+    .choice.is-wrong { background: #EEF1F5; animation: shake 0.4s ease; }
+
+    .pen { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+    .pen path {
+      fill: none;
+      stroke: var(--red);
+      stroke-width: 3.6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 1 1;
+      stroke-dashoffset: 1;
+      animation: draw 0.5s cubic-bezier(0.45, 0.05, 0.4, 1) forwards;
+    }
+    .pen path + path { animation-delay: 0.2s; }
+
+    .ask-side { display: grid; flex: 1; gap: 10px; }
+    .hint-label { display: inline-block; margin-right: 6px; padding: 0 8px; border-radius: 6px; background: #FFE27A; font-size: 14px; }
+
+    .feedback {
+      padding: 14px 16px 16px;
+      border: 3px solid var(--line);
+      border-radius: 18px;
+      background: #fff;
+      box-shadow: 0 4px 0 var(--edge);
+      animation: pop 0.25s ease both;
+      scroll-margin-top: 12px;
+      scroll-margin-bottom: 16px;
+    }
+    .feedback.is-ok { border-color: var(--red); }
+    .feedback.is-ng { border-color: var(--blue); }
+
+    .fb-head { display: flex; align-items: center; gap: 10px; }
+    .fb-title { font-size: 27px; font-weight: 900; line-height: 1.25; }
+    .is-ok .fb-title { color: var(--red); }
+    .is-ng .fb-title { color: var(--blue); }
+    .fb-sub { font-size: 16px; font-weight: 800; }
+    .fb-line { margin-top: 8px; font-weight: 700; }
+    .fb-treasure { margin-top: 10px; padding: 8px 12px; border: 2px dashed #E7BF45; border-radius: 12px; background: #FFF8DD; font-weight: 800; }
+    .fb-word { margin-top: 12px; padding: 12px 14px; }
+    .fb-word .word-text { font-size: 24px; }
+    .fb-word .notes { margin-top: 8px; }
+    .feedback .btn { margin-top: 14px; }
+
+    /* ============ けっか ============ */
+    .result-title { text-align: center; font-size: 25px; }
+
+    .result-hero {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: center;
+      gap: 16px;
+      padding: 16px;
+      border: 2px solid var(--line);
+      border-radius: 18px;
+      background: #fff;
+      box-shadow: 0 3px 0 var(--edge);
+    }
+
+    .grade-stamp {
+      position: relative;
+      display: grid;
+      place-items: center;
+      width: 128px;
+      height: 128px;
+      border: 6px double var(--red);
+      border-radius: 50%;
+      color: var(--red);
+      font-family: var(--font-word);
       font-size: 17px;
       font-weight: 700;
-      color: #22486f;
+      line-height: 1.3;
+      text-align: center;
+      transform: rotate(-12deg);
+      animation: stamp-big 0.45s cubic-bezier(0.2, 1.3, 0.4, 1) 0.15s both;
     }
 
-    .treasure-toast {
-      border: 2px solid #ffd166;
-      background: #fff8d9;
-      border-radius: 12px;
-      padding: 10px;
-      margin-top: 10px;
+    .grade-stamp .hanamaru { top: -26px; right: auto; left: -24px; width: 62px; height: 62px; animation-delay: 0.55s; }
+
+    .result-count { font-size: 18px; font-weight: 800; line-height: 1.4; }
+    .result-count b { display: block; color: var(--red); font-size: 40px; line-height: 1.15; }
+    .result-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+
+    .best { display: inline-block; margin-top: 8px; padding: 2px 12px; border-radius: 999px; background: #FFE27A; font-size: 14px; font-weight: 800; white-space: nowrap; }
+
+    .result-battle { display: flex; align-items: center; gap: 10px; font-weight: 800; }
+    .result-battle .monster { width: 48px; height: 48px; flex: none; }
+
+    .panel {
+      padding: 14px 16px;
+      border: 2px solid var(--line);
+      border-radius: 16px;
+      background: #fff;
+    }
+
+    .panel h3 { font-size: 17px; }
+    .panel h3 small { color: var(--ink-2); font-size: 14px; font-weight: 700; }
+    .panel > * + * { margin-top: 8px; }
+
+    .word-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    .word-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 44px;
+      padding: 4px 14px 4px 6px;
+      border: 2px solid var(--cat);
+      border-radius: 999px;
+      background: #fff;
+      font-family: var(--font-word);
+      font-size: 17px;
       font-weight: 700;
-      display: none;
+      cursor: pointer;
     }
 
-    @keyframes hitShake {
-      0% { transform: translateX(0); }
+    .word-chip .kana-mark { font-size: 12px; border-width: 2px; }
+
+    .miss-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+    .miss-list li { padding: 8px 12px; border-left: 5px solid var(--cat); border-radius: 6px; background: var(--cat-tint); }
+    .miss-list .w { font-family: var(--font-word); font-size: 18px; font-weight: 700; }
+
+    .result-body, .result-actions { display: grid; gap: 12px; }
+    .panel.result-battle > * + * { margin-top: 0; }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    /* ============ ずかん ============ */
+    .filter { margin-left: 0; margin-right: 0; margin-bottom: 0; padding: 0; border: 0; min-inline-size: 0; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .filter .chips { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+    .filter .chip span { justify-content: center; width: 100%; padding: 4px 4px; font-size: 16px; }
+    .chip { position: relative; }
+    .chip input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+    .chip span {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      min-height: 46px;
+      padding: 4px 16px;
+      border: 2px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .chip input:checked + span { border-color: var(--ink); background: var(--ink); color: #fff; }
+    .chip input:checked + span .stars { color: #FFD45C; }
+    .chip input:focus-visible + span { outline: 4px solid var(--focus); outline-offset: 2px; }
+
+    .dex-progress { padding: 12px 14px; border: 2px solid var(--line); border-radius: 16px; background: #fff; font-weight: 800; }
+    .dex-progress b { font-size: 24px; }
+
+    .dex { display: grid; grid-template-columns: repeat(auto-fill, minmax(102px, 1fr)); gap: 12px; }
+
+    .dcard {
+      display: grid;
+      place-items: center;
+      aspect-ratio: 5 / 7;
+      padding: 30px 6px 24px;
+      cursor: pointer;
+    }
+
+    .dcard .kana-mark { position: absolute; top: 8px; right: 8px; font-size: 12.5px; border-width: 2px; }
+
+    .dcard-word {
+      writing-mode: vertical-rl;
+      white-space: nowrap;
+      font-family: var(--font-word);
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 1.45;
+    }
+    .dcard-word.small { font-size: 16px; }
+
+    .dcard .stars { position: absolute; left: 0; right: 0; bottom: 6px; font-size: 11px; text-align: center; }
+
+    .dcard.locked {
+      background:
+        repeating-conic-gradient(var(--cat-tint) 0 25%, #fff 0 50%) 50% 50% / 16px 16px;
+    }
+    .dcard-q {
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      border: 3px solid var(--cat);
+      border-radius: 50%;
+      background: #fff;
+      color: var(--cat-dark);
+      font-size: 24px;
+      font-weight: 900;
+    }
+
+    /* ============ ふくしゅう ============ */
+    .review-list { display: grid; gap: 10px; }
+    .rv { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 12px; align-items: center; padding: 12px 14px; }
+    .rv .word-text { font-size: 22px; }
+    .rv .rv-hint { grid-column: 1 / -1; color: var(--ink-2); font-size: 15.5px; font-weight: 700; }
+    .rv .mini-mon { width: 42px; height: 42px; }
+
+    /* ============ せってい ============ */
+    .setting {
+      margin-left: 0;
+      margin-right: 0;
+      margin-bottom: 0;
+      padding: 14px 16px 16px;
+      border: 2px solid var(--line);
+      border-radius: 16px;
+      background: #fff;
+      min-inline-size: 0;
+    }
+    .setting legend, .setting h3 { float: left; width: 100%; margin-bottom: 8px; padding: 0; font-size: 18px; font-weight: 800; }
+    .setting legend + * { clear: both; }
+    .setting .chips { display: grid; grid-template-columns: 1fr 1fr; }
+    .setting .chip span { flex-direction: column; justify-content: center; gap: 0; width: 100%; min-height: 54px; padding: 4px 8px; line-height: 1.35; }
+    .setting .chip .stars { font-size: 12px; }
+    .setting-note { margin-top: 8px; color: var(--ink-2); font-size: 14.5px; font-weight: 700; }
+    .setting.parent { border-style: dashed; }
+    .setting.parent p { margin-bottom: 12px; font-size: 15px; }
+    .saved { min-height: 1.7em; color: var(--d-proverb); font-weight: 800; text-align: center; }
+
+    /* ============ ダイアログ ============ */
+    .sheet {
+      width: min(480px, calc(100% - 28px));
+      max-height: calc(100% - 40px);
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: var(--ink);
+    }
+    .sheet::backdrop { background: rgba(22, 33, 48, 0.5); }
+    .sheet[open]:not(:modal) { position: fixed; inset: 0; margin: auto; z-index: 10; }
+    .sheet-inner {
+      max-height: calc(100vh - 60px);
+      overflow: auto;
+      padding: 18px;
+      border-radius: 20px;
+      background: #fff;
+      box-shadow: 0 12px 30px rgba(20, 30, 45, 0.28);
+      animation: pop 0.2s ease both;
+    }
+    .sheet h3 { margin-bottom: 8px; font-size: 21px; }
+    .sheet-body > * + * { margin-top: 8px; }
+    .sheet-actions { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 10px; margin-top: 16px; }
+    .detail { padding: 14px 16px 16px; }
+    .detail .word-text { font-size: clamp(26px, 7vw, 34px); }
+
+    /* ============ うごき ============ */
+    @keyframes draw { to { stroke-dashoffset: 0; } }
+    @keyframes stamp {
+      0% { transform: scale(1.9) rotate(-30deg); opacity: 0; }
+      60% { transform: scale(0.92) rotate(-10deg); opacity: 1; }
+      100% { transform: scale(1) rotate(-12deg); opacity: 1; }
+    }
+    @keyframes stamp-big {
+      0% { transform: scale(1.7) rotate(-24deg); opacity: 0; }
+      60% { transform: scale(0.95) rotate(-10deg); opacity: 1; }
+      100% { transform: scale(1) rotate(-12deg); opacity: 1; }
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
       20% { transform: translateX(-6px); }
       40% { transform: translateX(6px); }
       60% { transform: translateX(-4px); }
-      80% { transform: translateX(4px); }
-      100% { transform: translateX(0); }
+      80% { transform: translateX(3px); }
+    }
+    @keyframes zap {
+      0% { transform: translateX(0); filter: brightness(1); }
+      25% { transform: translateX(-7px); filter: brightness(1.8); }
+      50% { transform: translateX(7px); filter: brightness(1.2); }
+      75% { transform: translateX(-4px); filter: brightness(1.6); }
+      100% { transform: translateX(0); filter: brightness(1); }
+    }
+    @keyframes pop {
+      0% { transform: translateY(6px) scale(0.98); opacity: 0; }
+      100% { transform: none; opacity: 1; }
     }
 
-    @keyframes flashStrike {
-      0% { transform: scale(1); filter: brightness(1); }
-      40% { transform: scale(1.2); filter: brightness(1.5); }
-      100% { transform: scale(1); filter: brightness(1); }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-delay: 0s !important;
+        transition-duration: 0.001ms !important;
+      }
     }
 
-    .list {
-      display: grid;
-      gap: 8px;
+    @media (max-width: 370px) {
+      body { font-size: 16px; }
+      .app { padding-left: 12px; padding-right: 12px; }
+      .choice { font-size: 17px; }
+      .choice-word { font-size: 19px; }
+      .mode-name { font-size: 21px; }
+      .dots { gap: 3px; }
+      .dot { width: 10px; height: 10px; }
     }
 
-    .entry {
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px;
-      background: #fcfeff;
-    }
-
-    .entry h4 { margin: 0 0 6px; font-size: 20px; }
-
-    select {
-      min-height: 46px;
-      border-radius: 10px;
-      border: 2px solid #9fc4f4;
-      width: 100%;
-      padding: 8px;
-      font-size: 18px;
-      font-weight: 700;
-      background: #fff;
-      color: var(--text);
-    }
-
-    .footer-nav { margin-top: 12px; }
-
-    @media (max-width: 420px) {
-      .app { padding: 8px; }
-      .screen { padding: 12px; }
-      .question .prompt { font-size: 21px; }
-      p, li, .btn, .choice, select { font-size: 17px; }
+    @media (min-width: 600px) {
+      body { font-size: 18px; }
+      .choice { font-size: 19px; }
+      .choices.grid .choice { min-height: 120px; }
+      .result-actions { grid-template-columns: 1fr 1fr; }
+      .result-actions > .row2 { grid-column: 1 / -1; }
     }
   </style>
 </head>
 <body>
   <main class="app" id="appRoot">
+
+    <!-- ===== タイトル ===== -->
     <section id="titleScreen" class="screen active" aria-labelledby="titleHeading">
-      <h1 id="titleHeading">ことばクエスト<br>〜慣用句・ことわざ・古事成語バトル〜</h1>
-      <p class="subtitle">ことば博士と いっしょに、ことばの ぼうけんへ！</p>
-      <div class="guide" aria-live="polite">👨‍🏫 ことば博士「1回10問！3〜5分でサクッと学べるよ。まちがえても大丈夫、つぎでレベルアップ！」</div>
-      <article class="today-word" id="todayWordBox" aria-live="polite"></article>
-      <div id="titleStats" class="status"></div>
-      <button class="btn good" id="startFromTitle" aria-label="モード選択へ進む">ゲームスタート！</button>
-      <div class="footer-nav row">
-        <a class="btn link" href="random/index.html">ことばくじ</a>
-        <button class="btn secondary" data-nav="dictionaryScreen">言葉図鑑</button>
-        <button class="btn secondary" data-nav="settingsScreen">設定</button>
+      <header class="logo">
+        <span class="kana-mark" aria-hidden="true">こ</span>
+        <h1 id="titleHeading" tabindex="-1">ことばクエスト</h1>
+      </header>
+      <p class="tagline"><ruby>慣用句<rt>かんようく</rt></ruby>・ことわざ・<ruby>四字熟語<rt>よじじゅくご</rt></ruby>の ことばバトル</p>
+
+      <article class="karuta today" id="todayCard" aria-labelledby="todayLabel"></article>
+
+      <div class="prof-row">
+        <span class="prof" data-prof></span>
+        <p class="bubble">1回10もん。3〜5分で できるよ。まちがえても だいじょうぶ！</p>
       </div>
+
+      <button class="btn primary start" type="button" data-nav="modeScreen"><span>スタート！</span></button>
+
+      <section class="player" id="playerCard" aria-label="きろく"></section>
+      <p class="notice" id="storageNotice" hidden>この きかいでは きろくを ほぞんできないよ。あそぶことは できるよ。</p>
+
+      <nav class="nav-grid" aria-label="メニュー">
+        <a class="btn ghost" href="random/index.html"><span class="ico" aria-hidden="true">🎴</span><span>ことばくじ</span></a>
+        <button class="btn ghost" type="button" data-nav="dictionaryScreen"><span class="ico" aria-hidden="true">📚</span><span>ことば<ruby>図鑑<rt>ずかん</rt></ruby></span></button>
+        <button class="btn ghost" type="button" data-nav="reviewScreen"><span class="ico" aria-hidden="true">📝</span><span><ruby>復習<rt>ふくしゅう</rt></ruby>ノート</span><span class="count-badge" id="reviewBadge" hidden></span></button>
+        <button class="btn ghost" type="button" data-nav="settingsScreen"><span class="ico" aria-hidden="true">⚙️</span><span>せってい</span></button>
+      </nav>
     </section>
 
+    <!-- ===== モードえらび ===== -->
     <section id="modeScreen" class="screen" aria-labelledby="modeHeading">
-      <h2 id="modeHeading" tabindex="-1">モードをえらぼう</h2>
-      <p class="subtitle">きょうは どのバトルに する？</p>
-      <div class="menu-grid">
-        <button class="btn" data-mode="idiom">慣用句モード</button>
-        <button class="btn" data-mode="proverb">ことわざモード</button>
-        <button class="btn" data-mode="koji">古事成語モード</button>
-        <button class="btn good" data-mode="mix">ミックスモード</button>
-        <button class="btn warn" data-mode="review">復習モード</button>
+      <div class="topbar">
+        <button class="back" type="button" data-nav="back">もどる</button>
+        <h2 id="modeHeading" tabindex="-1">どの バトルに する？</h2>
       </div>
-      <div class="footer-nav row">
-        <button class="btn secondary" data-nav="titleScreen">タイトルへ</button>
-        <button class="btn secondary" data-nav="settingsScreen">設定</button>
-      </div>
+      <div class="mode-list" id="modeList"></div>
+      <p class="mode-foot" id="modeFoot"></p>
     </section>
 
+    <!-- ===== クイズ ===== -->
     <section id="quizScreen" class="screen" aria-labelledby="quizHeading">
-      <h2 id="quizHeading" tabindex="-1">クイズバトル</h2>
-      <div class="status" id="quizStatus"></div>
-      <section class="battle-board" aria-live="polite">
-        <div class="monster-row">
-          <div>
-            <strong id="monsterName">まちがいモンスター</strong>
-            <div class="small" id="monsterState">のんびりしている…</div>
-          </div>
-          <div class="monster-avatar" id="monsterAvatar" role="img" aria-label="まちがいモンスター">👾</div>
+      <h2 id="quizHeading" class="sr-only" tabindex="-1">クイズバトル</h2>
+      <div class="quiz-top">
+        <button class="back quit" type="button" data-action="quit">やめる</button>
+        <div class="progress" id="quizProgress"></div>
+        <span class="score" id="quizScore">0てん</span>
+      </div>
+
+      <section class="battle" aria-label="モンスターとの バトル">
+        <div class="monster" id="monster"></div>
+        <div>
+          <div class="battle-row"><strong id="monsterName">まちがいモンスター</strong><span class="combo" id="comboBadge" hidden></span></div>
+          <div class="hp" id="hpMeter" role="progressbar" aria-label="モンスターの HP" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"><span class="hp-bar" id="hpBar"></span></div>
+          <p class="battle-log" id="battleLog" aria-live="polite"></p>
         </div>
-        <div class="monster-hp" aria-label="モンスターHP">
-          <div class="monster-hp-bar" id="monsterHpBar"></div>
-        </div>
-        <div class="battle-log" id="battleLog">バトル開始！ことばでダメージをあたえよう！</div>
       </section>
-      <div class="guide" id="guideMessage">🧙 かんちゃん「いける！あせらず えらぼう！」</div>
-      <article class="question">
-        <div class="small" id="questionMeta"></div>
-        <div class="prompt" id="questionPrompt"></div>
-        <div class="choices" id="choicesArea"></div>
-        <div class="row" style="margin-top:10px;">
-          <button class="btn secondary" id="hintBtn" style="max-width:220px;">ヒントを見る</button>
-          <button class="btn" id="nextBtn" style="max-width:220px; display:none;">つぎの問題へ</button>
+
+      <article class="karuta qcard" id="questionCard" tabindex="-1"></article>
+      <div class="choices" id="choicesArea"></div>
+
+      <div class="prof-row" id="askRow">
+        <span class="prof" data-prof></span>
+        <div class="ask-side">
+          <p class="bubble" id="askBubble" aria-live="polite"></p>
+          <button class="btn ghost small" type="button" id="hintBtn" data-action="hint"><span>💡 ヒントを 見る</span><small>（−5てん）</small></button>
         </div>
-        <div id="feedback" class="feedback" aria-live="polite" style="display:none;"></div>
-        <div id="treasureToast" class="treasure-toast" aria-live="polite"></div>
-      </article>
-      <div class="footer-nav row">
-        <button class="btn secondary" data-nav="modeScreen">モード選択へ</button>
       </div>
+
+      <section class="feedback" id="feedback" hidden aria-live="polite"></section>
     </section>
 
+    <!-- ===== けっか ===== -->
     <section id="resultScreen" class="screen" aria-labelledby="resultHeading">
-      <h2 id="resultHeading" tabindex="-1">けっか発表！</h2>
-      <div class="guide" id="resultGuide"></div>
-      <div id="resultSummary" class="status"></div>
-      <div id="resultDetail"></div>
-      <div class="footer-nav row">
-        <button class="btn good" data-nav="modeScreen">もう1回あそぶ</button>
-        <button class="btn secondary" data-nav="dictionaryScreen">言葉図鑑を見る</button>
+      <h2 id="resultHeading" class="result-title" tabindex="-1">けっか はっぴょう</h2>
+      <div class="result-hero" id="resultHero"></div>
+      <div id="resultBody" class="result-body"></div>
+      <div class="result-actions">
+        <button class="btn primary" type="button" data-action="replay"><span>もう一回 おなじ バトル</span></button>
+        <button class="btn ghost" type="button" data-nav="modeScreen"><span>ほかの バトルを えらぶ</span></button>
+        <div class="row2">
+          <button class="btn ghost" type="button" data-nav="dictionaryScreen"><span>ずかんを 見る</span></button>
+          <button class="btn ghost" type="button" data-nav="titleScreen"><span>タイトルへ</span></button>
+        </div>
       </div>
     </section>
 
+    <!-- ===== ずかん ===== -->
     <section id="dictionaryScreen" class="screen" aria-labelledby="dictionaryHeading">
-      <h2 id="dictionaryHeading" tabindex="-1">言葉図鑑</h2>
-      <p class="subtitle">あつめた言葉を チェックしよう</p>
-      <div id="dictionaryProgress" class="guide"></div>
-      <label for="dictionaryFilter">カテゴリでしぼる</label>
-      <select id="dictionaryFilter" aria-label="図鑑カテゴリ選択">
-        <option value="all">すべて</option>
-        <option value="idiom">慣用句</option>
-        <option value="proverb">ことわざ</option>
-        <option value="koji">古事成語</option>
-      </select>
-      <div id="dictionaryList" class="list" style="margin-top:10px;"></div>
-      <div class="footer-nav row">
-        <button class="btn secondary" data-nav="titleScreen">タイトルへ</button>
-        <button class="btn secondary" data-nav="modeScreen">モード選択へ</button>
+      <div class="topbar">
+        <button class="back" type="button" data-nav="back">もどる</button>
+        <h2 id="dictionaryHeading" tabindex="-1">ことば<ruby>図鑑<rt>ずかん</rt></ruby></h2>
       </div>
+      <div class="dex-progress" id="dexProgress"></div>
+      <fieldset class="filter">
+        <legend class="sr-only">しゅるいで しぼる</legend>
+        <div class="chips">
+          <label class="chip"><input type="radio" name="dexFilter" value="all" checked><span>ぜんぶ</span></label>
+          <label class="chip"><input type="radio" name="dexFilter" value="idiom"><span><ruby>慣用句<rt>かんようく</rt></ruby></span></label>
+          <label class="chip"><input type="radio" name="dexFilter" value="proverb"><span>ことわざ</span></label>
+          <label class="chip"><input type="radio" name="dexFilter" value="koji"><span><ruby>四字熟語<rt>よじじゅくご</rt></ruby></span></label>
+        </div>
+      </fieldset>
+      <div class="dex" id="dexGrid"></div>
     </section>
 
+    <!-- ===== ふくしゅう ===== -->
     <section id="reviewScreen" class="screen" aria-labelledby="reviewHeading">
-      <h2 id="reviewHeading" tabindex="-1">復習ノート</h2>
-      <p id="reviewMessage" class="guide">まちがえた問題をもう一度！</p>
-      <div id="reviewList" class="list"></div>
-      <div class="footer-nav row">
-        <button class="btn warn" data-mode="review">復習モードをはじめる</button>
-        <button class="btn secondary" data-nav="modeScreen">モード選択へ</button>
+      <div class="topbar">
+        <button class="back" type="button" data-nav="back">もどる</button>
+        <h2 id="reviewHeading" tabindex="-1"><ruby>復習<rt>ふくしゅう</rt></ruby>ノート</h2>
       </div>
+      <div class="prof-row">
+        <span class="prof" data-prof></span>
+        <p class="bubble" id="reviewMessage"></p>
+      </div>
+      <div id="reviewActions"></div>
+      <div class="review-list" id="reviewList"></div>
     </section>
 
+    <!-- ===== せってい ===== -->
     <section id="settingsScreen" class="screen" aria-labelledby="settingsHeading">
-      <h2 id="settingsHeading" tabindex="-1">設定</h2>
-      <label for="difficultySelect">難易度をえらぶ</label>
-      <select id="difficultySelect" aria-label="難易度選択">
-        <option value="all">ぜんぶ</option>
-        <option value="easy">かんたん</option>
-        <option value="normal">ふつう</option>
-        <option value="hard">むずかしい</option>
-      </select>
-      <p class="small">※ モード開始時にこの設定が使われます。</p>
-      <div class="row" style="margin-top:12px;">
-        <button class="btn good" id="saveSettingsBtn">設定を保存</button>
-        <button class="btn danger" id="resetDataBtn">学習記録をリセット</button>
+      <div class="topbar">
+        <button class="back" type="button" data-nav="back">もどる</button>
+        <h2 id="settingsHeading" tabindex="-1">せってい</h2>
       </div>
-      <div id="settingsInfo" class="guide" style="margin-top:10px;">設定をかえると、つぎのプレイから反映されるよ。</div>
-      <div class="footer-nav row">
-        <button class="btn secondary" data-nav="titleScreen">タイトルへ</button>
-      </div>
+      <fieldset class="setting">
+        <legend>もんだいの むずかしさ</legend>
+        <div class="chips">
+          <label class="chip"><input type="radio" name="difficulty" value="all"><span>ぜんぶ</span></label>
+          <label class="chip"><input type="radio" name="difficulty" value="easy"><span>かんたん<i class="stars">★</i></span></label>
+          <label class="chip"><input type="radio" name="difficulty" value="normal"><span>ふつう<i class="stars">★★</i></span></label>
+          <label class="chip"><input type="radio" name="difficulty" value="hard"><span>むずかしい<i class="stars">★★★</i></span></label>
+        </div>
+        <p class="setting-note">つぎの バトルから かわるよ。</p>
+      </fieldset>
+      <fieldset class="setting">
+        <legend>ふりがな</legend>
+        <div class="chips">
+          <label class="chip"><input type="radio" name="furigana" value="on"><span>つける</span></label>
+          <label class="chip"><input type="radio" name="furigana" value="off"><span>つけない</span></label>
+        </div>
+        <p class="setting-note">むずかしい 漢字の 上に、よみがなが 出るよ。</p>
+      </fieldset>
+      <section class="setting parent" aria-labelledby="parentHeading">
+        <h3 id="parentHeading">おうちの方へ</h3>
+        <p>学習記録（図鑑・スター・レベル・まちがえた言葉）をすべて消して、最初からにできます。</p>
+        <button class="btn danger small" type="button" data-action="reset"><span>きろくを けす</span></button>
+      </section>
+      <p class="saved" id="settingsInfo" role="status"></p>
     </section>
   </main>
 
+  <dialog class="sheet" id="dialog" aria-labelledby="dialogTitle">
+    <div class="sheet-inner">
+      <h3 id="dialogTitle"></h3>
+      <div class="sheet-body" id="dialogBody"></div>
+      <div class="sheet-actions" id="dialogActions"></div>
+    </div>
+  </dialog>
+
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+      <symbol id="hanamaru-shape" viewBox="0 0 100 100">
+        <g fill="none" stroke="currentColor" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M50.0 19.0A11.7 11.7 0 1 1 69.9 26.3A11.7 11.7 0 1 1 80.5 44.6A11.7 11.7 0 1 1 76.8 65.5A11.7 11.7 0 1 1 60.6 79.1A11.7 11.7 0 1 1 39.4 79.1A11.7 11.7 0 1 1 23.2 65.5A11.7 11.7 0 1 1 19.5 44.6A11.7 11.7 0 1 1 30.1 26.3A11.7 11.7 0 1 1 50.0 19.0Z"/>
+          <path d="M50 50A4.4 4.4 0 0 1 58.8 50A8.8 8.8 0 0 1 41.2 50A13.2 13.2 0 0 1 67.6 50A17.6 17.6 0 0 1 32.4 50A22.0 22.0 0 0 1 76.4 50"/>
+        </g>
+      </symbol>
+    </defs>
+  </svg>
+
   <script src="words.js"></script>
   <script>
+    'use strict';
+
     const STORAGE_KEY = 'kotobaQuestDataV1';
     const TREASURE_MILESTONES = [3, 5, 10];
     const TREASURE_TYPES = ['言葉カード', '称号', '星', 'スタンプ'];
     const TITLES = ['ひよこ冒険者', 'ことばハンター', 'ことば勇者', '伝説のことば使い'];
-    const STAMPS = ['🔥', '🌈', '🛡️', '⚡', '📘', '🐉'];
-    const CHESTS = ['🧰', '🎁', '🗝️', '📦'];
-    const MONSTERS = ['👾', '😈', '🐲', '🦑'];
-    const CHARACTER_LINES = {
-      correct: ['やったね！その調子！', 'いいぞ！ことばの一撃！', '大正解！どんどん進もう！', 'ナイス！ことば力アップ中！'],
-      wrong: ['次はチャンス！', 'まちがえた言葉ほど覚えやすいよ。', 'だいじょうぶ、次で取り返せる！', '一歩ずつでOK！'],
-      hint: ['ヒントは作戦！うまく使おう。', 'ナイス判断！ここから逆転だ。', 'ヒントを使うのも強さだよ。'],
-      result: ['10問クリアおめでとう！', '今日もよくがんばったね！', 'つぎの冒険も楽しみだね！', '言葉マスターに近づいてる！']
+    const TITLE_MARKUP = {
+      'ひよこ冒険者': 'ひよこ{冒険者|ぼうけんしゃ}',
+      'ことば勇者': 'ことば{勇者|ゆうしゃ}',
+      '伝説のことば使い': '{伝説|でんせつ}のことば使い'
     };
-    const LEVEL_TABLE = [
-      {level: 1, title: 'ことば見習い', need: 0},
-      {level: 5, title: 'ことば探検家', need: 30},
-      {level: 10, title: 'ことば勇者', need: 90},
-      {level: 20, title: 'ことば博士', need: 220},
-      {level: 30, title: 'ことばマスター', need: 420}
+    const STAMPS = ['🔥', '🌈', '🛡️', '⚡', '📘', '🐉'];
+    const MONSTER_INKS = ['#3B3F8F', '#2F3340', '#B3303C', '#1E7A6A'];
+    const REVIEW_INK = '#6B46C1';
+
+    // {漢字|かんじ} と書くと、ふりがな（ruby）になる
+    const CATS = {
+      idiom: { label: '{慣用句|かんようく}', plain: '慣用句', kana: 'か', sample: '「顔が広い」のような 言い方' },
+      proverb: { label: 'ことわざ', plain: 'ことわざ', kana: 'こ', sample: '「急がば回れ」のような むかしからの 教え' },
+      koji: { label: '{四字熟語|よじじゅくご}', plain: '四字熟語', kana: 'よ', sample: '「一石二鳥」のような 漢字4文字の ことば' }
+    };
+    const MODES = {
+      idiom: CATS.idiom,
+      proverb: CATS.proverb,
+      koji: CATS.koji,
+      mix: { label: 'ミックス', plain: 'ミックス', kana: 'ま', sample: '3つの しゅるいを まぜて 出すよ' },
+      review: { label: '{復習|ふくしゅう}', plain: '復習', kana: 'ふ', sample: 'まちがえた ことばに もう一度 ちょうせん' }
+    };
+    const DIFF = {
+      easy: { label: 'かんたん', stars: '★' },
+      normal: { label: 'ふつう', stars: '★★' },
+      hard: { label: 'むずかしい', stars: '★★★' }
+    };
+    const LEVELS = [
+      { level: 1, title: 'ことば見習い', min: 0, next: 30 },
+      { level: 5, title: 'ことば{探検家|たんけんか}', min: 30, next: 90 },
+      { level: 10, title: 'ことば{勇者|ゆうしゃ}', min: 90, next: 220 },
+      { level: 20, title: 'ことば{博士|はかせ}', min: 220, next: 420 },
+      { level: 30, title: 'ことばマスター', min: 420, next: null }
     ];
-    const appState = {
-      mode: 'mix',
-      difficulty: 'all',
-      deck: [],
-      index: 0,
-      score: 0,
-      correct: 0,
-      combo: 0,
-      chestClaimedInRun: [],
-      monsterHp: 100,
-      monsterEmoji: '👾',
-      specialCount: 0,
-      hintUsed: false,
-      answered: false,
-      currentQuestion: null,
-      data: {
+    const LINES = {
+      ask: ['あわてず 読んで、ぴったりの 答えを えらぼう。', 'さいごまで 読んでから えらぼう。', 'わからない ときは ヒントを 見ても いいよ。'],
+      correct: ['やったね！ その ちょうし！', 'すばらしい！ ことばの 力が アップしたね。', 'ナイス！ どんどん いこう！', 'おみごと！ よく 知ってるね。'],
+      wrong: ['さるも 木から おちる！ つぎで とりかえそう。', 'まちがえた ことばほど、よく おぼえられるよ。', 'だいじょうぶ。いみを 読んで おぼえちゃおう。', 'おしかったね。つぎは きっと できるよ。'],
+      result: ['10もん クリア おめでとう！', 'きょうも よく がんばったね！', 'つぎの ぼうけんも たのしみだね！']
+    };
+    const FORMAT_LABEL = { meaning: 'いみを えらぼう', word: 'ことばを えらぼう', story: 'ばめんに あう ことばは？' };
+
+    const PROF_SVG = '<svg viewBox="0 0 120 120" aria-hidden="true" focusable="false">'
+      + '<circle cx="19" cy="64" r="14" fill="#9C5F33"/><circle cx="101" cy="64" r="14" fill="#9C5F33"/>'
+      + '<circle cx="19" cy="64" r="8" fill="#F3C9A1"/><circle cx="101" cy="64" r="8" fill="#F3C9A1"/>'
+      + '<circle cx="60" cy="62" r="43" fill="#9C5F33"/>'
+      + '<path d="M60 40C50 30 26 34 27 56C28 66 32 72 36 76C34 94 48 102 60 102C72 102 86 94 84 76C88 72 92 66 93 56C94 34 70 30 60 40Z" fill="#F6D3AE"/>'
+      + '<ellipse cx="37" cy="78" rx="6" ry="3.5" fill="#F29C9C" opacity=".75"/><ellipse cx="83" cy="78" rx="6" ry="3.5" fill="#F29C9C" opacity=".75"/>'
+      + '<g class="eyes-open"><circle cx="46" cy="58" r="5.2" fill="#2A1C12"/><circle cx="74" cy="58" r="5.2" fill="#2A1C12"/><circle cx="47.8" cy="56.2" r="1.7" fill="#fff"/><circle cx="75.8" cy="56.2" r="1.7" fill="#fff"/></g>'
+      + '<g class="eyes-happy" fill="none" stroke="#2A1C12" stroke-width="3.2" stroke-linecap="round"><path d="M40.5 60Q46 52.5 51.5 60"/><path d="M68.5 60Q74 52.5 79.5 60"/></g>'
+      + '<g fill="none" stroke="#2A1C12" stroke-width="2.6"><circle cx="46" cy="58" r="11.5"/><circle cx="74" cy="58" r="11.5"/><path d="M57.5 57Q60 54.5 62.5 57"/></g>'
+      + '<ellipse cx="56.5" cy="76" rx="1.8" ry="2.2" fill="#8C5530"/><ellipse cx="63.5" cy="76" rx="1.8" ry="2.2" fill="#8C5530"/>'
+      + '<path d="M49 85Q60 94 71 85" fill="none" stroke="#8C5530" stroke-width="3" stroke-linecap="round"/>'
+      + '<g transform="rotate(-10 60 22)"><path d="M46 25V33Q60 40 74 33V25L60 30Z" fill="#26324A"/><path d="M32 22L60 11L88 22L60 32Z" fill="#26324A"/><path d="M85 23L87 36" stroke="#F2B705" stroke-width="2.2" stroke-linecap="round"/><circle cx="87" cy="37.5" r="2.8" fill="#F2B705"/></g>'
+      + '</svg>';
+
+    const MONSTER_SVG = '<svg viewBox="0 0 100 100" aria-hidden="true" focusable="false">'
+      + '<ellipse cx="50" cy="94" rx="30" ry="4" fill="#1E2B3A" opacity=".12"/>'
+      + '<path d="M50 10C72 9 88 25 87 47C86.5 60 82 68 78 73C77 79 79 86 75 88.5C70.5 91 67.5 86 67.5 80.5C62 83 56 84 50 84C46.5 84 44.5 90 40 91.5C35 93 32.5 87.5 34.5 82C24 79 14 68 13 51C12 28 28 11 50 10Z" fill="var(--mon, #3B3F8F)"/>'
+      + '<circle cx="15" cy="85" r="3.2" fill="var(--mon, #3B3F8F)"/><circle cx="87" cy="93" r="2.4" fill="var(--mon, #3B3F8F)"/>'
+      + '<path d="M27 31Q33 20 45 18" stroke="#fff" stroke-opacity=".3" stroke-width="4" fill="none" stroke-linecap="round"/>'
+      + '<g class="mon-eyes"><ellipse cx="38" cy="47" rx="9" ry="10.5" fill="#fff"/><ellipse cx="62" cy="47" rx="9" ry="10.5" fill="#fff"/><circle cx="40" cy="49.5" r="4.6" fill="#141821"/><circle cx="60" cy="49.5" r="4.6" fill="#141821"/><path d="M27 32L45 37M73 32L55 37" stroke="#141821" stroke-width="3.6" stroke-linecap="round"/></g>'
+      + '<g class="mon-eyes-hit" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M31 41L43 47L31 53"/><path d="M69 41L57 47L69 53"/></g>'
+      + '<g class="mon-eyes-down" stroke="#fff" stroke-width="4" stroke-linecap="round"><path d="M32 41L44 53M44 41L32 53"/><path d="M56 41L68 53M68 41L56 53"/></g>'
+      + '<path d="M38 65Q44 71 50 65Q56 71 62 65" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/><path d="M42.6 67.2L44.6 72L46.6 67.6Z" fill="#fff"/>'
+      + '</svg>';
+
+    const HANAMARU = '<svg class="hanamaru" viewBox="0 0 100 100" aria-hidden="true" focusable="false"><use href="#hanamaru-shape"/></svg>';
+
+    function defaultData() {
+      return {
         unlockedWordIds: [],
         wrongQuestionIds: [],
         totalPlays: 0,
@@ -483,12 +1081,78 @@
         titles: [],
         stars: 0,
         stamps: [],
-        settings: {difficulty: 'all'},
+        settings: { difficulty: 'all', furigana: true },
         lastPlayedAt: ''
-      },
+      };
+    }
+
+    const appState = {
+      mode: 'mix',
+      deck: [],
+      index: 0,
+      score: 0,
+      correct: 0,
+      combo: 0,
+      chestClaimedInRun: [],
+      monsterHp: 100,
+      monsterInk: MONSTER_INKS[0],
+      specialCount: 0,
+      hintUsed: false,
+      answered: false,
+      currentQuestion: null,
+      runLog: [],
+      newWordIds: [],
+      runTreasures: [],
+      data: defaultData(),
       storageAvailable: true
     };
 
+    let screenHistory = ['titleScreen'];
+
+    /* ---------- 小さな道具 ---------- */
+    const $ = (selector, root = document) => root.querySelector(selector);
+
+    function esc(value) {
+      return String(value).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    function rb(markup) {
+      return esc(markup).replace(/\{([^|{}]+)\|([^{}]+)\}/g, '<ruby>$1<rt>$2</rt></ruby>');
+    }
+
+    function toSet(arr) { return new Set(Array.isArray(arr) ? arr : []); }
+    function getRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+    function firstKana(reading) { return (reading || '？').charAt(0); }
+    function kanaMark(kana) { return `<span class="kana-mark" aria-hidden="true">${esc(kana)}</span>`; }
+    function wordById(id) { return WORDS.find((w) => w.id === id); }
+    function wordClass(text) { return Array.from(text).length >= 9 ? 'word-text long' : 'word-text'; }
+    function prefersReducedMotion() { return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
+
+    function exampleHtml(word) {
+      const ex = word.example || '';
+      let start = ex.indexOf(word.word);
+      let len = word.word.length;
+      if (start < 0 && word.word.length > 2) {
+        const stem = word.word.slice(0, -1);
+        start = ex.indexOf(stem);
+        len = stem.length;
+        if (start >= 0) {
+          while (len < stem.length + 3 && /[ぁ-ん]/.test(ex.charAt(start + len))) len += 1;
+        }
+      }
+      if (start < 0) return esc(ex);
+      return `${esc(ex.slice(0, start))}<b class="hl">${esc(ex.slice(start, start + len))}</b>${esc(ex.slice(start + len))}`;
+    }
+
+    function notesHtml(word, withExplanation) {
+      return `<dl class="notes">
+        <div><dt>いみ</dt><dd>${esc(word.meaning)}</dd></div>
+        ${withExplanation ? `<div><dt>せつめい</dt><dd>${esc(word.explanation)}</dd></div>` : ''}
+        <div><dt>つかいかた</dt><dd>${exampleHtml(word)}</dd></div>
+      </dl>`;
+    }
+
+    /* ---------- 保存 ---------- */
     function canUseStorage() {
       try {
         const k = '__test_key__';
@@ -507,14 +1171,20 @@
       if (!raw) return;
       try {
         const parsed = JSON.parse(raw);
+        const base = defaultData();
         appState.data = {
-          ...appState.data,
+          ...base,
           ...parsed,
+          unlockedWordIds: Array.isArray(parsed.unlockedWordIds) ? parsed.unlockedWordIds : [],
+          wrongQuestionIds: Array.isArray(parsed.wrongQuestionIds) ? parsed.wrongQuestionIds : [],
           treasures: Array.isArray(parsed.treasures) ? parsed.treasures : [],
           titles: Array.isArray(parsed.titles) ? parsed.titles : [],
           stamps: Array.isArray(parsed.stamps) ? parsed.stamps : [],
           stars: Number(parsed.stars) || 0,
-          settings: {...appState.data.settings, ...(parsed.settings || {})}
+          totalPlays: Number(parsed.totalPlays) || 0,
+          totalCorrect: Number(parsed.totalCorrect) || 0,
+          bestScore: Number(parsed.bestScore) || 0,
+          settings: { ...base.settings, ...(parsed.settings || {}) }
         };
       } catch (error) {
         console.warn('保存データの読み込みに失敗しました', error);
@@ -523,132 +1193,196 @@
 
     function saveData() {
       if (!appState.storageAvailable) return;
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(appState.data));
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState.data));
+      } catch (error) {
+        console.warn('保存に失敗しました', error);
+      }
     }
 
-    function showScreen(screenId) {
+    function applyFurigana() {
+      document.documentElement.classList.toggle('furi-off', appState.data.settings.furigana === false);
+    }
+
+    /* ---------- 画面きりかえ ---------- */
+    function showScreen(screenId, options = {}) {
+      if (!options.fromBack && screenHistory[screenHistory.length - 1] !== screenId) {
+        screenHistory.push(screenId);
+        if (screenHistory.length > 30) screenHistory = screenHistory.slice(-30);
+      }
       document.querySelectorAll('.screen').forEach((screen) => {
         screen.classList.toggle('active', screen.id === screenId);
       });
-      const heading = document.querySelector(`#${screenId} h2, #${screenId} h1`);
-      if (heading) heading.focus();
-      if (screenId === 'titleScreen') renderTitleStats();
+      if (screenId === 'titleScreen') renderTitle();
+      if (screenId === 'modeScreen') renderModes();
       if (screenId === 'dictionaryScreen') renderDictionary();
-      if (screenId === 'reviewScreen') renderReviewScreen();
+      if (screenId === 'reviewScreen') renderReview();
       if (screenId === 'settingsScreen') renderSettings();
+      window.scrollTo(0, 0);
+      const heading = document.querySelector(`#${screenId} h1, #${screenId} h2`);
+      if (heading) heading.focus({ preventScroll: true });
     }
 
-    function toSet(arr) {
-      return new Set(Array.isArray(arr) ? arr : []);
+    function goBack() {
+      const current = screenHistory.pop();
+      let prev = screenHistory.pop();
+      while (prev && (prev === current || prev === 'quizScreen' || prev === 'resultScreen')) prev = screenHistory.pop();
+      prev = prev || 'titleScreen';
+      screenHistory.push(prev);
+      showScreen(prev, { fromBack: true });
     }
 
-    function categoryLabel(cat) {
-      if (cat === 'idiom') return '慣用句';
-      if (cat === 'proverb') return 'ことわざ';
-      return '古事成語';
+    /* ---------- ダイアログ ---------- */
+    function openDialog({ title, titleHidden = false, body, actions }) {
+      const dialog = $('#dialog');
+      const titleEl = $('#dialogTitle');
+      titleEl.innerHTML = title;
+      titleEl.classList.toggle('sr-only', titleHidden);
+      $('#dialogBody').innerHTML = body;
+      const area = $('#dialogActions');
+      area.innerHTML = '';
+      actions.forEach((action) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = `btn ${action.kind || 'ghost'}`;
+        button.innerHTML = `<span>${action.label}</span>`;
+        button.addEventListener('click', () => {
+          closeDialog();
+          if (action.onClick) action.onClick();
+        });
+        area.appendChild(button);
+      });
+      if (typeof dialog.showModal === 'function') {
+        if (!dialog.open) dialog.showModal();
+      } else {
+        dialog.setAttribute('open', '');
+      }
+      const first = area.querySelector('button');
+      if (first) first.focus();
     }
 
-    function rarityLabel(diff) {
-      if (diff === 'easy') return '★';
-      if (diff === 'normal') return '★★';
-      if (diff === 'hard') return '★★★';
-      return '👑';
+    function closeDialog() {
+      const dialog = $('#dialog');
+      if (typeof dialog.close === 'function' && dialog.open) dialog.close();
+      else dialog.removeAttribute('open');
     }
 
-    function getRandom(arr) {
-      return arr[Math.floor(Math.random() * arr.length)];
+    /* ---------- レベル・きょうのことば ---------- */
+    function getPlayerLevel(totalCorrect) {
+      for (let i = LEVELS.length - 1; i >= 0; i -= 1) {
+        if (totalCorrect >= LEVELS[i].min) return LEVELS[i];
+      }
+      return LEVELS[0];
     }
 
     function getTodayWord() {
       const now = new Date();
-      const seed = `${now.getUTCFullYear()}-${now.getUTCMonth() + 1}-${now.getUTCDate()}`;
+      const seed = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
       let hash = 0;
       for (let i = 0; i < seed.length; i += 1) hash = (hash * 31 + seed.charCodeAt(i)) % WORDS.length;
       return WORDS[hash];
     }
 
-    function getPlayerLevel(totalCorrect) {
-      const thresholds = [
-        {level: 1, title: 'ことば見習い', min: 0, next: 30},
-        {level: 5, title: 'ことば探検家', min: 30, next: 90},
-        {level: 10, title: 'ことば勇者', min: 90, next: 220},
-        {level: 20, title: 'ことば博士', min: 220, next: 420},
-        {level: 30, title: 'ことばマスター', min: 420, next: null}
-      ];
-      for (let i = thresholds.length - 1; i >= 0; i -= 1) {
-        if (totalCorrect >= thresholds[i].min) return thresholds[i];
-      }
-      return thresholds[0];
+    function unlockedCount(list = WORDS) {
+      const unlocked = toSet(appState.data.unlockedWordIds);
+      return list.filter((w) => unlocked.has(w.id)).length;
     }
 
-    function difficultyLabel(value) {
-      return value === 'easy' ? 'かんたん' : value === 'normal' ? 'ふつう' : 'むずかしい';
+    function wrongWords() {
+      const wrong = toSet(appState.data.wrongQuestionIds);
+      return WORDS.filter((w) => wrong.has(w.id));
     }
 
-    function modeFilter(mode) {
-      if (mode === 'idiom') return (item) => item.category === 'idiom';
-      if (mode === 'proverb') return (item) => item.category === 'proverb';
-      if (mode === 'koji') return (item) => item.category === 'koji';
-      return () => true;
+    function renderTitle() {
+      const today = getTodayWord();
+      const card = $('#todayCard');
+      card.dataset.cat = today.category;
+      card.innerHTML = `
+        <div class="card-head"><span class="card-label" id="todayLabel">きょうの ことば</span><span class="tag tag-cat">${rb(CATS[today.category].label)}</span></div>
+        <div class="word-row">${kanaMark(firstKana(today.reading))}<div><span class="reading-line furi">${esc(today.reading)}</span><span class="${wordClass(today.word)}">${esc(today.word)}</span></div></div>
+        ${notesHtml(today, false)}`;
+
+      const d = appState.data;
+      const lv = getPlayerLevel(d.totalCorrect);
+      const pct = lv.next ? Math.min(100, Math.round(((d.totalCorrect - lv.min) / (lv.next - lv.min)) * 100)) : 100;
+      const stamps = (d.stamps || []).join('');
+      $('#playerCard').innerHTML = `
+        <div class="player-lv"><span class="lv">Lv.${lv.level}</span><span>${rb(lv.title)}</span></div>
+        <div class="meter" role="progressbar" aria-label="つぎの レベルまで" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><span style="width:${pct}%"></span></div>
+        <p class="player-next">${lv.next ? `つぎの レベルまで あと <b>${lv.next - d.totalCorrect}</b>もん せいかい` : 'いちばん 上の レベルだよ！'}</p>
+        <ul class="player-stats">
+          <li><span aria-hidden="true">⭐</span> スター <b>${d.stars || 0}</b></li>
+          <li><span aria-hidden="true">📚</span> ずかん <b>${unlockedCount()}</b>/${WORDS.length}</li>
+          <li><span aria-hidden="true">🏆</span> さいこう <b>${d.bestScore}</b>てん</li>
+        </ul>
+        ${stamps ? `<p class="player-stamps">あつめた スタンプ <span>${esc(stamps)}</span></p>` : ''}`;
+
+      $('#storageNotice').hidden = appState.storageAvailable;
+      const badge = $('#reviewBadge');
+      const wrongCount = wrongWords().length;
+      badge.hidden = wrongCount === 0;
+      badge.textContent = wrongCount;
+      badge.setAttribute('aria-label', `まちがえた ことば ${wrongCount}こ`);
+    }
+
+    /* ---------- モード ---------- */
+    function renderModes() {
+      const html = ['idiom', 'proverb', 'koji', 'mix', 'review'].map((mode) => {
+        const meta = MODES[mode];
+        let side;
+        if (CATS[mode]) {
+          const list = WORDS.filter((w) => w.category === mode);
+          side = `<span class="mode-side"><span>ずかん</span><span><b>${unlockedCount(list)}</b>/${list.length}</span></span>`;
+        } else if (mode === 'mix') {
+          side = `<span class="mode-side"><span>ずかん</span><span><b>${unlockedCount()}</b>/${WORDS.length}</span></span>`;
+        } else {
+          side = `<span class="mode-side"><span>まちがい</span><span><b>${wrongWords().length}</b>こ</span></span>`;
+        }
+        const action = mode === 'review' ? 'data-nav="reviewScreen"' : `data-mode="${mode}"`;
+        return `<button type="button" class="karuta mode-card" data-cat="${mode}" ${action}>
+          ${kanaMark(meta.kana)}
+          <span><span class="mode-name">${rb(meta.label)}</span><span class="mode-sample">${esc(meta.sample)}</span></span>
+          ${side}
+        </button>`;
+      }).join('');
+      $('#modeList').innerHTML = html;
+      const diff = appState.data.settings.difficulty || 'all';
+      const diffText = diff === 'all' ? 'ぜんぶ' : `${DIFF[diff].label} ${DIFF[diff].stars}`;
+      $('#modeFoot').innerHTML = `<span>むずかしさ：${diffText}</span><button type="button" class="linkish" data-nav="settingsScreen">かえる</button>`;
+    }
+
+    function difficultyPool(byMode) {
+      const diff = appState.data.settings.difficulty || 'all';
+      const pool = diff === 'all' ? byMode : byMode.filter((item) => item.difficulty === diff);
+      return pool.length < 10 ? byMode : pool;
     }
 
     function buildDeck(mode) {
-      const diff = appState.data.settings.difficulty || 'all';
-      const byMode = WORDS.filter(modeFilter(mode));
-      let pool = diff === 'all' ? byMode : byMode.filter((item) => item.difficulty === diff);
-      if (pool.length < 10) {
-        pool = byMode;
-      }
-
+      const byMode = CATS[mode] ? WORDS.filter((w) => w.category === mode) : WORDS.slice();
+      const pool = difficultyPool(byMode);
       if (mode === 'review') {
         const wrongSet = toSet(appState.data.wrongQuestionIds);
         const wrongPool = pool.filter((item) => wrongSet.has(item.id));
         if (wrongPool.length === 0) return [];
-        const restPool = pool.filter((item) => !wrongSet.has(item.id));
-        const deck = [...pickRandom(wrongPool, 10), ...pickRandom(restPool, 10)];
-        return pickRandom(deck, Math.min(10, deck.length));
+        // まちがえた ことばを先に入れて、10もんに足りないときだけ ほかの ことばで うめる
+        const deck = pickRandom(wrongPool, 10);
+        if (deck.length < 10) {
+          const restPool = pool.filter((item) => !wrongSet.has(item.id));
+          deck.push(...pickRandom(restPool, 10 - deck.length));
+        }
+        return pickRandom(deck, deck.length);
       }
-
       return pickRandom(pool, 10);
     }
 
     function buildQuestion(item) {
       const format = ['meaning', 'word', 'story'][Math.floor(Math.random() * 3)];
-      const sameCategory = WORDS.filter((w) => w.category === item.category && w.id !== item.id);
-      const otherWords = WORDS.filter((w) => w.id !== item.id);
-      let prompt = '';
-      let answerText = '';
-      let choices = [];
-      let formatLabel = '';
-
-      if (format === 'meaning') {
-        prompt = `【意味をえらぼう】\n「${item.word}」の意味として正しいのはどれ？`;
-        answerText = item.meaning;
-        choices = pickRandom(sameCategory.map((w) => w.meaning), 3);
-        choices.push(answerText);
-        formatLabel = '意味を選ぶ問題';
-      } else if (format === 'word') {
-        prompt = `【言葉をえらぼう】\n「${item.meaning}」を表す言葉はどれ？`;
-        answerText = item.word;
-        choices = pickRandom(sameCategory.map((w) => w.word), 3);
-        choices.push(answerText);
-        formatLabel = '言葉を選ぶ問題';
-      } else {
-        prompt = `【ストーリー問題】\n${item.story}\nこの場面にいちばん合う言葉は？`;
-        answerText = item.word;
-        choices = pickRandom(otherWords.filter((w) => w.category === item.category).map((w) => w.word), 3);
-        choices.push(answerText);
-        formatLabel = 'ストーリー問題';
-      }
-
-      choices = pickRandom(Array.from(new Set(choices)), 4);
-      if (!choices.includes(answerText)) {
-        choices[Math.floor(Math.random() * choices.length)] = answerText;
-      }
-      const answerIndex = choices.findIndex((c) => c === answerText);
-      return {item, prompt, choices, answerIndex, formatLabel, format};
+      const others = pickRandom(WORDS.filter((w) => w.category === item.category && w.id !== item.id), 3);
+      const options = pickRandom([item, ...others], 4);
+      return { item, format, options, answerIndex: options.findIndex((o) => o.id === item.id) };
     }
 
+    /* ---------- クイズ ---------- */
     function startMode(mode) {
       appState.mode = mode;
       appState.deck = buildDeck(mode);
@@ -656,21 +1390,69 @@
         showScreen('reviewScreen');
         return;
       }
-      appState.index = 0;
-      appState.score = 0;
-      appState.correct = 0;
-      appState.combo = 0;
-      appState.chestClaimedInRun = [];
-      appState.monsterHp = 100;
-      appState.monsterEmoji = getRandom(MONSTERS);
-      appState.specialCount = 0;
-      appState.hintUsed = false;
-      appState.answered = false;
+      Object.assign(appState, {
+        index: 0,
+        score: 0,
+        correct: 0,
+        combo: 0,
+        chestClaimedInRun: [],
+        monsterHp: 100,
+        monsterInk: mode === 'review' ? REVIEW_INK : getRandom(MONSTER_INKS),
+        specialCount: 0,
+        hintUsed: false,
+        answered: false,
+        runLog: [],
+        newWordIds: [],
+        runTreasures: []
+      });
       appState.data.totalPlays += 1;
       appState.data.lastPlayedAt = new Date().toISOString();
       saveData();
       showScreen('quizScreen');
+      $('#monster').classList.remove('hit', 'special', 'down');
+      renderMonster();
+      $('#battleLog').textContent = 'バトル スタート！';
       renderQuestion();
+    }
+
+    function setProf(root, mood) {
+      root.querySelectorAll('[data-prof]').forEach((el) => {
+        if (!el.firstChild) el.innerHTML = PROF_SVG;
+        el.classList.toggle('happy', mood === 'happy');
+      });
+    }
+
+    function renderQuizTop() {
+      const total = appState.deck.length;
+      const dots = appState.deck.map((_, i) => {
+        const log = appState.runLog[i];
+        const cls = log ? (log.ok ? 'ok' : 'ng') : (i === appState.index ? 'now' : '');
+        return `<span class="dot ${cls}"></span>`;
+      }).join('');
+      $('#quizProgress').innerHTML = `<span class="sr-only">${total}もん中 ${appState.index + 1}もんめ</span><span class="dots" aria-hidden="true">${dots}</span>`;
+      $('#quizScore').textContent = `${appState.score}てん`;
+      const combo = $('#comboBadge');
+      combo.hidden = appState.combo < 2;
+      combo.textContent = `🔥 ${appState.combo}れんぞく`;
+    }
+
+    function renderMonster(effect) {
+      const el = $('#monster');
+      if (!el.firstChild) el.innerHTML = MONSTER_SVG;
+      const hp = Math.max(0, appState.monsterHp);
+      el.style.setProperty('--mon', appState.monsterInk);
+      el.style.setProperty('--s', (0.62 + 0.38 * (hp / 100)).toFixed(2));
+      el.classList.toggle('down', hp <= 0);
+      $('#hpBar').style.width = `${hp}%`;
+      $('#hpMeter').setAttribute('aria-valuenow', String(hp));
+      $('#monsterName').textContent = appState.mode === 'review' ? 'ふくしゅうモンスター' : 'まちがいモンスター';
+      if (effect) {
+        el.classList.remove('hit', 'special');
+        void el.offsetWidth;
+        el.classList.add('hit');
+        if (effect === 'special') el.classList.add('special');
+        window.setTimeout(() => el.classList.remove('hit', 'special'), 750);
+      }
     }
 
     function renderQuestion() {
@@ -680,93 +1462,151 @@
       appState.hintUsed = false;
       appState.answered = false;
 
-      const total = appState.deck.length;
-      const lv = getPlayerLevel(appState.data.totalCorrect);
-      document.getElementById('quizStatus').innerHTML = `
-        <div class="box">問題: ${appState.index + 1}/${total}</div>
-        <div class="box">スコア: ${appState.score}</div>
-        <div class="box">コンボ: ${appState.combo}</div>
-        <div class="box">正解: ${appState.correct}</div>
-        <div class="box">Lv.${lv.level} ${lv.title}</div>
-        <div class="box">必殺技: ${appState.specialCount}回</div>
-      `;
-      document.getElementById('questionMeta').textContent = `${categoryLabel(item.category)} / ${difficultyLabel(item.difficulty)} / ${q.formatLabel}`;
-      document.getElementById('questionPrompt').textContent = q.prompt;
-      document.getElementById('feedback').style.display = 'none';
-      document.getElementById('nextBtn').style.display = 'none';
-      document.getElementById('hintBtn').disabled = false;
-      document.getElementById('guideMessage').textContent = '🧙 ことちゃん「あせらず読んで、ぴったりの答えをえらぼう！」';
-      document.getElementById('treasureToast').style.display = 'none';
-      renderMonsterPanel();
+      renderQuizTop();
 
-      const choicesArea = document.getElementById('choicesArea');
-      choicesArea.innerHTML = '';
-      q.choices.forEach((choice, i) => {
-        const button = document.createElement('button');
-        button.className = 'choice';
-        button.type = 'button';
-        button.setAttribute('aria-label', `選択肢 ${i + 1}`);
-        button.textContent = `${i + 1}. ${choice}`;
-        button.addEventListener('click', () => answerQuestion(i));
-        choicesArea.appendChild(button);
-      });
-    }
-
-    function updateLearningData(isCorrect, itemId) {
-      const unlocked = toSet(appState.data.unlockedWordIds);
-      const wrongSet = toSet(appState.data.wrongQuestionIds);
-
-      if (isCorrect) {
-        unlocked.add(itemId);
-        if (appState.mode === 'review') {
-          wrongSet.delete(itemId);
-        }
+      let body;
+      if (q.format === 'meaning') {
+        body = `<div class="word-row">${kanaMark(firstKana(item.reading))}<div><span class="reading-line furi">${esc(item.reading)}</span><span class="${wordClass(item.word)}">${esc(item.word)}</span></div></div>
+          <p class="qask">の いみは どれ？</p>`;
+      } else if (q.format === 'word') {
+        body = `<div class="word-row">${kanaMark('？')}<p class="qmeaning">「${esc(item.meaning)}」</p></div>
+          <p class="qask">を あらわす ことばは どれ？</p>`;
       } else {
-        wrongSet.add(itemId);
+        body = `<div class="qstory"><span class="qstory-label">こんな ばめん</span><p>${esc(item.story)}</p></div>
+          <p class="qask">この ばめんに ぴったりの ことばは どれ？</p>`;
       }
+      const card = $('#questionCard');
+      card.dataset.cat = item.category;
+      card.innerHTML = `<div class="qcard-tags"><span class="tag tag-cat">${rb(CATS[item.category].label)}</span><span class="tag">${FORMAT_LABEL[q.format]}</span><i class="stars" aria-label="むずかしさ ${DIFF[item.difficulty].label}">${DIFF[item.difficulty].stars}</i></div>${body}`;
 
-      appState.data.unlockedWordIds = Array.from(unlocked);
-      appState.data.wrongQuestionIds = Array.from(wrongSet);
-      saveData();
+      const area = $('#choicesArea');
+      area.className = `choices ${q.format === 'meaning' ? 'list' : 'grid'}`;
+      area.innerHTML = '';
+      q.options.forEach((opt, i) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'choice';
+        button.innerHTML = q.format === 'meaning'
+          ? `<span class="choice-num" aria-hidden="true">${i + 1}</span><span>${esc(opt.meaning)}</span>`
+          : `<span class="choice-num" aria-hidden="true">${i + 1}</span><span class="reading-line furi">${esc(opt.reading)}</span><span class="choice-word">${esc(opt.word)}</span>`;
+        button.addEventListener('click', () => answerQuestion(i));
+        area.appendChild(button);
+      });
+
+      const hintBtn = $('#hintBtn');
+      hintBtn.disabled = false;
+      hintBtn.innerHTML = '<span>💡 ヒントを 見る</span><small>（−5てん）</small>';
+      $('#askBubble').textContent = getRandom(LINES.ask);
+      $('#askRow').hidden = false;
+      $('#feedback').hidden = true;
+      setProf($('#quizScreen'), 'normal');
     }
 
-    function renderMonsterPanel(logText = '') {
-      const hp = Math.max(0, appState.monsterHp);
-      const hpRate = `${hp}%`;
-      document.getElementById('monsterName').textContent = appState.mode === 'review' ? '復習まちがいモンスター' : 'まちがいモンスター';
-      document.getElementById('monsterState').textContent = hp <= 0 ? 'ぐったりしている…' : `HP ${hp}/100`;
-      document.getElementById('monsterHpBar').style.width = hpRate;
-      document.getElementById('monsterAvatar').textContent = appState.mode === 'review' ? '😵‍💫' : appState.monsterEmoji;
-      if (logText) document.getElementById('battleLog').textContent = logText;
+    function showHint() {
+      if (appState.answered || appState.hintUsed) return;
+      appState.hintUsed = true;
+      $('#askBubble').innerHTML = `<span class="hint-label">ヒント</span>${esc(appState.currentQuestion.item.hint)}`;
+      const hintBtn = $('#hintBtn');
+      hintBtn.disabled = true;
+      hintBtn.innerHTML = '<span>ヒントを 見たよ</span><small>（−5てん）</small>';
+    }
+
+    // 先生の赤ペンのような ○ と ×
+    function penCirclePath(cx, cy, rx, ry) {
+      const steps = 72;
+      const start = Math.PI * 1.08;
+      const sweep = Math.PI * 2 + 0.55;
+      const phase = Math.random() * Math.PI * 2;
+      const pts = [];
+      for (let i = 0; i <= steps; i += 1) {
+        const k = i / steps;
+        const t = start + sweep * k;
+        const grow = 1 + 0.045 * k;
+        const wobble = 1 + 0.018 * Math.sin(3 * t + phase);
+        pts.push(`${(cx + rx * grow * wobble * Math.cos(t)).toFixed(1)} ${(cy + ry * grow * wobble * Math.sin(t) - 1.5 * k).toFixed(1)}`);
+      }
+      return `M${pts.join(' L')}`;
+    }
+
+    function penMark(button, kind) {
+      const w = button.clientWidth;
+      const h = button.clientHeight;
+      let paths;
+      if (kind === 'circle') {
+        let cx = w / 2;
+        let cy = h / 2;
+        let rx = w / 2 - 4;
+        let ry = h / 2 - 3;
+        const word = button.querySelector('.choice-word');
+        if (word && button.closest('.choices.grid')) {
+          const box = button.getBoundingClientRect();
+          const parts = Array.from(button.querySelectorAll('.choice-word, .reading-line')).filter((el) => el.offsetParent !== null);
+          const rects = parts.map((el) => el.getBoundingClientRect());
+          const left = Math.min(...rects.map((r) => r.left)) - box.left - button.clientLeft;
+          const right = Math.max(...rects.map((r) => r.right)) - box.left - button.clientLeft;
+          const top = Math.min(...rects.map((r) => r.top)) - box.top - button.clientTop;
+          const bottom = Math.max(...rects.map((r) => r.bottom)) - box.top - button.clientTop;
+          cx = (left + right) / 2;
+          cy = (top + bottom) / 2;
+          rx = Math.min(w / 2 - 4, (right - left) / 2 + 18);
+          ry = Math.min(h / 2 - 4, (bottom - top) / 2 + 12);
+        }
+        paths = `<path pathLength="1" d="${penCirclePath(cx, cy, rx, ry)}"/>`;
+      } else {
+        const cx = w - 24;
+        const cy = 24;
+        paths = `<path pathLength="1" d="M${cx - 11} ${cy - 12} Q${cx} ${cy - 1} ${cx + 12} ${cy + 12}"/><path pathLength="1" d="M${cx + 11} ${cy - 12} Q${cx + 1} ${cy} ${cx - 12} ${cy + 11}"/>`;
+      }
+      button.insertAdjacentHTML('beforeend', `<svg class="pen" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" aria-hidden="true" focusable="false">${paths}</svg>`);
     }
 
     function grantTreasure(triggerLabel) {
       const type = getRandom(TREASURE_TYPES);
-      const chest = getRandom(CHESTS);
       let item;
       if (type === '言葉カード') item = `${getRandom(WORDS).word}カード`;
       if (type === '称号') item = getRandom(TITLES);
       if (type === '星') item = `スター +${Math.floor(Math.random() * 3) + 1}`;
       if (type === 'スタンプ') item = getRandom(STAMPS);
-      const record = {id: Date.now() + Math.floor(Math.random() * 1000), trigger: triggerLabel, type, item};
+      const record = { id: Date.now() + Math.floor(Math.random() * 1000), trigger: triggerLabel, type, item };
       appState.data.treasures = [...appState.data.treasures, record].slice(-80);
       if (type === '称号') appState.data.titles = Array.from(new Set([...(appState.data.titles || []), item]));
       if (type === 'スタンプ') appState.data.stamps = Array.from(new Set([...(appState.data.stamps || []), item]));
       if (type === '星') appState.data.stars = (appState.data.stars || 0) + Number(item.replace('スター +', ''));
+      appState.runTreasures.push(record);
       saveData();
+      return record;
+    }
 
-      const toast = document.getElementById('treasureToast');
-      toast.style.display = 'block';
-      toast.textContent = `${chest} 宝箱オープン！「${item}」をゲット！（${triggerLabel}）`;
+    function treasureText(record) {
+      if (record.type === '称号') return `「${rb(TITLE_MARKUP[record.item] || record.item)}」の しょうごう`;
+      if (record.type === 'スタンプ') return `スタンプ ${esc(record.item)}`;
+      return `「${esc(record.item)}」`;
     }
 
     function checkTreasureMilestone() {
+      const granted = [];
       TREASURE_MILESTONES.forEach((point) => {
         if (appState.correct >= point && !appState.chestClaimedInRun.includes(point)) {
           appState.chestClaimedInRun.push(point);
-          grantTreasure(`${point}問正解`);
+          granted.push(grantTreasure(`${point}問正解`));
         }
       });
+      return granted;
+    }
+
+    function updateLearningData(isCorrect, itemId) {
+      const unlocked = toSet(appState.data.unlockedWordIds);
+      const wrongSet = toSet(appState.data.wrongQuestionIds);
+      if (isCorrect) {
+        if (!unlocked.has(itemId)) appState.newWordIds.push(itemId);
+        unlocked.add(itemId);
+        if (appState.mode === 'review') wrongSet.delete(itemId);
+      } else {
+        wrongSet.add(itemId);
+      }
+      appState.data.unlockedWordIds = Array.from(unlocked);
+      appState.data.wrongQuestionIds = Array.from(wrongSet);
+      saveData();
     }
 
     function answerQuestion(selectedIndex) {
@@ -778,7 +1618,7 @@
       const isCorrect = selectedIndex === q.answerIndex;
       const basePoint = item.difficulty === 'easy' ? 10 : item.difficulty === 'normal' ? 15 : 20;
       let earned = basePoint;
-
+      let bonus = false;
       if (appState.hintUsed) earned = Math.max(5, earned - 5);
 
       if (isCorrect) {
@@ -790,6 +1630,7 @@
           earned += 10;
           damage += 18;
           appState.specialCount += 1;
+          bonus = true;
         }
         appState.monsterHp = Math.max(0, appState.monsterHp - damage);
         appState.score += earned;
@@ -798,55 +1639,97 @@
       }
 
       updateLearningData(isCorrect, item.id);
+      appState.runLog[appState.index] = { id: item.id, ok: isCorrect };
 
-      const feedback = document.getElementById('feedback');
-      const comboText = isCorrect && appState.combo >= 3 ? '\n🔥 3問連続正解ボーナス +10！' : '';
-      const reviewText = appState.mode === 'review' && isCorrect ? '\n📝 まちがいモンスターをやっつけた！復習クリア！' : '';
+      // 赤ペンで 丸つけ
+      const area = $('#choicesArea');
+      area.classList.add('answered');
+      const buttons = Array.from(area.querySelectorAll('.choice'));
+      buttons.forEach((b) => { b.disabled = true; });
+      const right = buttons[q.answerIndex];
+      right.classList.add('is-answer');
+      right.setAttribute('aria-label', `せいかい：${right.textContent}`);
+      penMark(right, 'circle');
+      if (!isCorrect) {
+        const picked = buttons[selectedIndex];
+        picked.classList.add('is-wrong');
+        picked.setAttribute('aria-label', `えらんだ答え：${picked.textContent}`);
+        penMark(picked, 'cross');
+      } else {
+        $('#questionCard').insertAdjacentHTML('beforeend', HANAMARU);
+      }
+
+      renderQuizTop();
+      const treasures = isCorrect ? checkTreasureMilestone() : [];
 
       if (isCorrect) {
-        feedback.textContent = `○ 正解！\n${earned}ポイントゲット！${comboText}${reviewText}\n\n解説: ${item.explanation}`;
-        const line = getRandom(CHARACTER_LINES.correct);
-        document.getElementById('guideMessage').textContent = `🎉 ことば博士「${line}」`;
-        const monster = document.getElementById('monsterAvatar');
-        monster.classList.remove('hit', 'special');
-        void monster.offsetWidth;
-        monster.classList.add(appState.combo >= 3 ? 'special' : 'hit');
-        const log = appState.combo >= 3
-          ? `⚡ 必殺技「ことばスラッシュ」！大ダメージ！ 残りHP ${appState.monsterHp}`
-          : `💥 ${appState.mode === 'review' ? '復習アタック！' : 'ことばアタック！'} 残りHP ${appState.monsterHp}`;
-        renderMonsterPanel(log);
-        checkTreasureMilestone();
+        renderMonster(appState.combo >= 3 ? 'special' : 'hit');
+        let log = appState.combo >= 3
+          ? `⚡ ひっさつ「ことばスラッシュ」！ のこり HP ${appState.monsterHp}`
+          : `💥 ${appState.mode === 'review' ? 'ふくしゅうアタック' : 'ことばアタック'}！ のこり HP ${appState.monsterHp}`;
+        if (appState.monsterHp <= 0) log = '🎉 モンスターを やっつけた！';
+        $('#battleLog').textContent = log;
       } else {
-        feedback.textContent = `× おしい！\n正解は「${q.choices[q.answerIndex]}」だよ。\n\n意味: ${item.meaning}\n解説: ${item.explanation}\n例文: ${item.example}`;
-        document.getElementById('guideMessage').textContent = `👾 ことちゃん「${getRandom(CHARACTER_LINES.wrong)}」`;
-        renderMonsterPanel('😈 まちがいモンスターがニヤリ…でも次で逆転だ！');
+        renderMonster();
+        $('#battleLog').textContent = 'モンスターが にやりと わらった…。つぎで まきかえそう！';
       }
-      feedback.style.display = 'block';
 
-      document.querySelectorAll('.choice').forEach((btn) => btn.disabled = true);
-      document.getElementById('hintBtn').disabled = true;
-      document.getElementById('nextBtn').style.display = 'inline-block';
-    }
+      const isLast = appState.index + 1 >= appState.deck.length;
+      const fb = $('#feedback');
+      fb.className = `feedback ${isCorrect ? 'is-ok' : 'is-ng'}`;
+      fb.innerHTML = `
+        <div class="fb-head">
+          <span class="prof" data-prof></span>
+          <div>
+            <p class="fb-title">${isCorrect ? 'せいかい！' : 'おしい！'}</p>
+            <p class="fb-sub">${isCorrect
+              ? `+${earned}てん${bonus ? '（🔥 3れんぞく ボーナス +10）' : ''}${appState.hintUsed ? '（ヒント −5）' : ''}`
+              : `こたえは「${esc(item.word)}」`}</p>
+          </div>
+        </div>
+        <p class="fb-line">${esc(getRandom(isCorrect ? LINES.correct : LINES.wrong))}</p>
+        ${treasures.map((t) => `<p class="fb-treasure">🎁 たからばこを あけたら ${treasureText(t)} が 出てきた！</p>`).join('')}
+        <article class="karuta fb-word" data-cat="${item.category}">
+          <div class="word-row">${kanaMark(firstKana(item.reading))}<div><span class="reading-line furi">${esc(item.reading)}</span><span class="${wordClass(item.word)}">${esc(item.word)}</span></div></div>
+          ${notesHtml(item, true)}
+        </article>
+        <button class="btn primary" type="button" data-action="next"><span>${isLast ? 'けっかを 見る' : 'つぎの もんだい'}</span></button>`;
+      setProf(fb, isCorrect ? 'happy' : 'normal');
+      $('#askRow').hidden = true;
+      fb.hidden = false;
 
-    function showHint() {
-      if (appState.answered) return;
-      appState.hintUsed = true;
-      const q = appState.currentQuestion;
-      const feedback = document.getElementById('feedback');
-      feedback.style.display = 'block';
-      feedback.textContent = `💡 ヒント: ${q.item.hint}\n（ヒントを使うとポイントが少し下がるよ）`;
-      document.getElementById('guideMessage').textContent = `🧙 かんちゃん「${getRandom(CHARACTER_LINES.hint)}」`;
+      const reduce = prefersReducedMotion();
+      window.setTimeout(() => {
+        fb.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'nearest' });
+        const next = fb.querySelector('[data-action="next"]');
+        if (next) next.focus({ preventScroll: true });
+      }, reduce ? 0 : 650);
     }
 
     function nextQuestion() {
+      if (!appState.answered) return;
       appState.index += 1;
       if (appState.index >= appState.deck.length) {
         finishQuiz();
       } else {
         renderQuestion();
+        window.scrollTo(0, 0);
+        $('#questionCard').focus({ preventScroll: true });
       }
     }
 
+    function confirmQuit() {
+      openDialog({
+        title: 'バトルを やめる？',
+        body: '<p>ここまでに せいかいした ことばは、ずかんに のこるよ。</p>',
+        actions: [
+          { label: 'つづける', kind: 'primary' },
+          { label: 'やめる', kind: 'ghost', onClick: () => showScreen('modeScreen') }
+        ]
+      });
+    }
+
+    /* ---------- けっか ---------- */
     function calcRank(score) {
       if (score >= 180) return 'S';
       if (score >= 130) return 'A';
@@ -855,181 +1738,255 @@
     }
 
     function finishQuiz() {
-      appState.data.bestScore = Math.max(appState.data.bestScore, appState.score);
+      const d = appState.data;
+      const isBest = appState.score > d.bestScore;
+      d.bestScore = Math.max(d.bestScore, appState.score);
       if (!appState.chestClaimedInRun.includes(100)) {
         appState.chestClaimedInRun.push(100);
         grantTreasure('10問クリア');
       }
       saveData();
-
-      const rank = calcRank(appState.score);
-      const monsterResult = appState.monsterHp <= 0 ? '✅ モンスター討伐成功！' : `⚠️ モンスターは逃げた…（残りHP ${appState.monsterHp}）`;
-      document.getElementById('resultSummary').innerHTML = `
-        <div class="box">正解数: ${appState.correct} / ${appState.deck.length}</div>
-        <div class="box">スコア: ${appState.score}</div>
-        <div class="box">ランク: ${rank}</div>
-        <div class="box">モード: ${appState.mode === 'review' ? '復習' : appState.mode === 'mix' ? 'ミックス' : categoryLabel(appState.mode)}</div>
-        <div class="box">バトル結果: ${monsterResult}</div>
-        <div class="box">必殺技回数: ${appState.specialCount}</div>
-      `;
-      document.getElementById('resultDetail').innerHTML = `
-        <p>総プレイ回数: <strong>${appState.data.totalPlays}</strong></p>
-        <p>総正解数: <strong>${appState.data.totalCorrect}</strong></p>
-        <p>最高スコア: <strong>${appState.data.bestScore}</strong></p>
-        <p>獲得スター: <strong>${appState.data.stars || 0}</strong></p>
-      `;
-
-      const guide = rank === 'S'
-        ? '🏆 こじくん「すごい！ことばマスター級！」'
-        : rank === 'A'
-          ? '🌟 ことちゃん「あと少しでS！とっても上手！」'
-          : rank === 'B'
-            ? '👍 かんちゃん「いい調子！復習でさらに強くなるよ！」'
-            : '😊 ことば博士「まずは10問クリアがえらい！次はもっとのびるよ！」';
-      document.getElementById('resultGuide').textContent = `${guide} ${getRandom(CHARACTER_LINES.result)}`;
+      renderResult(isBest);
       showScreen('resultScreen');
     }
 
-    function renderTitleStats() {
-      const last = appState.data.lastPlayedAt ? new Date(appState.data.lastPlayedAt).toLocaleString('ja-JP') : 'まだプレイしていないよ';
-      const storageText = appState.storageAvailable ? '保存OK' : '保存OFF（この端末では保存できないよ）';
-      const lv = getPlayerLevel(appState.data.totalCorrect);
-      const nextNeed = lv.next ? `${Math.max(0, lv.next - appState.data.totalCorrect)}問` : 'MAXレベル！';
-      document.getElementById('titleStats').innerHTML = `
-        <div class="box">総プレイ: ${appState.data.totalPlays}</div>
-        <div class="box">総正解: ${appState.data.totalCorrect}</div>
-        <div class="box">最高スコア: ${appState.data.bestScore}</div>
-        <div class="box">プレイヤー: Lv.${lv.level} ${lv.title}</div>
-        <div class="box">次のレベルまで: ${nextNeed}</div>
-        <div class="box">最終プレイ: ${last}</div>
-        <div class="box">保存状態: ${storageText}</div>
-        <div class="box">現在の難易度: ${appState.data.settings.difficulty === 'all' ? 'ぜんぶ' : difficultyLabel(appState.data.settings.difficulty)}</div>
-        <div class="box">称号: ${(appState.data.titles || []).length} / スタンプ: ${(appState.data.stamps || []).length}</div>
-      `;
+    function renderResult(isBest) {
+      const rank = calcRank(appState.score);
+      const total = appState.deck.length;
+      const stampLines = { S: ['たいへん', 'よくでき', 'ました'], A: ['たいへん', 'よくでき', 'ました'], B: ['よく', 'できました'], C: ['がんばり', 'ました'] }[rank];
+      const profLine = {
+        S: 'すごい！ ことばマスター級だね！',
+        A: 'あと少しで S ランク！ とっても じょうず！',
+        B: 'いい ちょうし！ ふくしゅうで もっと 強くなれるよ。',
+        C: 'さいごまで できたのが えらい！ つぎは もっと のびるよ。'
+      }[rank];
+
+      $('#resultHero').innerHTML = `
+        <div class="grade-stamp" role="img" aria-label="${stampLines.join('')}"><span aria-hidden="true">${stampLines.join('<br>')}</span>${rank === 'S' ? HANAMARU : ''}</div>
+        <div>
+          <p class="result-count">${total}もん中<b>${appState.correct}もん</b>せいかい！</p>
+          <div class="result-chips"><span class="tag">${appState.score}てん</span><span class="tag">ランク ${rank}</span>${appState.specialCount ? `<span class="tag">ひっさつ ${appState.specialCount}回</span>` : ''}</div>
+          ${isBest && appState.score > 0 ? '<span class="best">さいこう きろく！</span>' : ''}
+        </div>`;
+
+      const defeated = appState.monsterHp <= 0;
+      const newWords = appState.newWordIds.map(wordById).filter(Boolean);
+      const missed = appState.runLog.filter((r) => r && !r.ok).map((r) => wordById(r.id)).filter(Boolean);
+      const treasures = appState.runTreasures;
+
+      $('#resultBody').innerHTML = `
+        <div class="panel result-battle">
+          <div class="monster ${defeated ? 'down' : ''}" style="--mon:${appState.monsterInk}; --s:${defeated ? 0.62 : (0.62 + 0.38 * appState.monsterHp / 100).toFixed(2)}">${MONSTER_SVG}</div>
+          <p>${defeated ? 'モンスターを やっつけた！' : `モンスターに にげられた…（のこり HP ${appState.monsterHp}）`}</p>
+        </div>
+        <div class="prof-row"><span class="prof" data-prof></span><p class="bubble">${esc(profLine)} ${esc(getRandom(LINES.result))}</p></div>
+        ${treasures.length ? `<section class="panel"><h3>🎁 手に入れた たから</h3><p>${treasures.map(treasureText).join('、')}</p></section>` : ''}
+        ${newWords.length ? `<section class="panel"><h3>ずかんに 入った ことば <small>${newWords.length}まい</small></h3>
+          <div class="word-chips">${newWords.map((w) => `<button type="button" class="word-chip" data-cat="${w.category}" data-word="${w.id}">${kanaMark(firstKana(w.reading))}${esc(w.word)}</button>`).join('')}</div></section>` : ''}
+        ${missed.length ? `<section class="panel"><h3>まちがえた ことば <small>${rb('{復習|ふくしゅう}')}ノートに 入れたよ</small></h3>
+          <ul class="miss-list">${missed.map((w) => `<li data-cat="${w.category}"><span class="w">${esc(w.word)}</span><br>${esc(w.meaning)}</li>`).join('')}</ul></section>` : ''}`;
+      setProf($('#resultScreen'), rank === 'C' ? 'normal' : 'happy');
     }
 
-    function renderTodayWord() {
-      const today = getTodayWord();
-      document.getElementById('todayWordBox').innerHTML = `
-        <strong>📅 今日のことば: ${today.word}</strong>
-        <p style="margin:6px 0;"><strong>意味:</strong> ${today.meaning}</p>
-        <p style="margin:0;"><strong>例文:</strong> ${today.example}</p>
-      `;
+    /* ---------- ずかん ---------- */
+    // かるたの縦書きで、ことばの切れ目で改行する
+    const VBREAKS = {
+      '手に汗を握る': ['手に汗を', '握る'],
+      '石の上にも三年': ['石の上にも', '三年'],
+      '習うより慣れろ': ['習うより', '慣れろ'],
+      '転ばぬ先の杖': ['転ばぬ', '先の杖'],
+      '七転び八起き': ['七転び', '八起き'],
+      '案ずるより産むが易し': ['案ずるより', '産むが易し'],
+      '猿も木から落ちる': ['猿も木から', '落ちる'],
+      '二兎を追う者は一兎をも得ず': ['二兎を追う', '者は', '一兎をも得ず'],
+      '継続は力なり': ['継続は', '力なり'],
+      '塵も積もれば山となる': ['塵も積もれば', '山となる'],
+      '情けは人のためならず': ['情けは人の', 'ためならず'],
+      '雨降って地固まる': ['雨降って', '地固まる'],
+      '百聞は一見にしかず': ['百聞は', '一見にしかず'],
+      '笑う門には福来る': ['笑う門には', '福来る'],
+      '失敗は成功のもと': ['失敗は', '成功のもと']
+    };
+
+    function verticalLines(text) {
+      if (VBREAKS[text]) return VBREAKS[text];
+      const chars = Array.from(text);
+      if (chars.length <= 5) return [text];
+      const cols = Math.ceil(chars.length / 5);
+      const per = Math.ceil(chars.length / cols);
+      const lines = [];
+      for (let i = 0; i < chars.length; i += per) lines.push(chars.slice(i, i + per).join(''));
+      return lines;
+    }
+
+    function verticalWord(text) {
+      const lines = verticalLines(text);
+      const longest = Math.max(...lines.map((l) => Array.from(l).length));
+      return `<span class="dcard-word${longest >= 6 ? ' small' : ''}" aria-hidden="true">${lines.map(esc).join('<br>')}</span>`;
     }
 
     function renderDictionary() {
-      const filter = document.getElementById('dictionaryFilter').value;
-      const unlockedSet = toSet(appState.data.unlockedWordIds);
-      const list = document.getElementById('dictionaryList');
-      list.innerHTML = '';
-
-      const filtered = WORDS.filter((w) => filter === 'all' ? true : w.category === filter);
-      const unlockedCount = filtered.filter((w) => unlockedSet.has(w.id)).length;
-      const percent = filtered.length ? Math.floor((unlockedCount / filtered.length) * 100) : 0;
-      document.getElementById('dictionaryProgress').textContent = `📚 図鑑達成率: ${unlockedCount}/${filtered.length} (${percent}%)`;
-
-      filtered.forEach((word) => {
-        const got = unlockedSet.has(word.id);
-        const div = document.createElement('article');
-        div.className = 'entry';
-        if (!got) {
-          div.innerHTML = `
-            <h4>？？？</h4>
-            <p class="small">${categoryLabel(word.category)} / ${difficultyLabel(word.difficulty)} / レア度: ${rarityLabel(word.difficulty)}</p>
-            <p>まだ見つけていない言葉だよ。クイズで正解してゲットしよう！</p>
-          `;
-        } else {
-          div.innerHTML = `
-            <h4>${word.word}（${word.reading}）</h4>
-            <p><strong>意味:</strong> ${word.meaning}</p>
-            <p><strong>解説:</strong> ${word.explanation}</p>
-            <p><strong>例文:</strong> ${word.example}</p>
-            <p class="small rare">${categoryLabel(word.category)} / ${difficultyLabel(word.difficulty)} / レア度: ${rarityLabel(word.difficulty)}</p>
-          `;
+      const checked = document.querySelector('input[name="dexFilter"]:checked');
+      const filter = checked ? checked.value : 'all';
+      const unlocked = toSet(appState.data.unlockedWordIds);
+      const list = WORDS.filter((w) => filter === 'all' || w.category === filter);
+      const got = list.filter((w) => unlocked.has(w.id)).length;
+      const pct = list.length ? Math.round((got / list.length) * 100) : 0;
+      $('#dexProgress').innerHTML = `<p><b>${got}</b>まい / ${list.length}まい あつめたよ</p>
+        <div class="meter" role="progressbar" aria-label="ずかんの あつまりぐあい" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><span style="width:${pct}%"></span></div>`;
+      $('#dexGrid').innerHTML = list.map((w) => {
+        const stars = `<i class="stars" aria-hidden="true">${DIFF[w.difficulty].stars}</i>`;
+        if (!unlocked.has(w.id)) {
+          return `<button type="button" class="karuta dcard locked" data-cat="${w.category}" data-word="${w.id}" aria-label="まだ 見つけていない ${esc(CATS[w.category].plain)}"><span class="dcard-q" aria-hidden="true">？</span>${stars}</button>`;
         }
-        list.appendChild(div);
+        return `<button type="button" class="karuta dcard" data-cat="${w.category}" data-word="${w.id}" aria-label="${esc(w.word)}">${kanaMark(firstKana(w.reading))}${verticalWord(w.word)}${stars}</button>`;
+      }).join('');
+    }
+
+    function openWordDialog(id) {
+      const w = wordById(id);
+      if (!w) return;
+      const has = toSet(appState.data.unlockedWordIds).has(id);
+      if (!has) {
+        openDialog({
+          title: 'まだ 見つけていない かるた',
+          body: `<p>${rb(CATS[w.category].label)}の かるただよ。むずかしさ <i class="stars">${DIFF[w.difficulty].stars}</i></p><p>クイズで せいかいすると、ずかんに 入るよ。</p>`,
+          actions: [{ label: 'とじる', kind: 'ghost' }]
+        });
+        return;
+      }
+      openDialog({
+        title: esc(w.word),
+        titleHidden: true,
+        body: `<article class="karuta detail" data-cat="${w.category}">
+            <div class="card-head"><span class="tag tag-cat">${rb(CATS[w.category].label)}</span><i class="stars" aria-label="むずかしさ ${DIFF[w.difficulty].label}">${DIFF[w.difficulty].stars}</i></div>
+            <div class="word-row">${kanaMark(firstKana(w.reading))}<div><span class="reading-line">${esc(w.reading)}</span><span class="${wordClass(w.word)}">${esc(w.word)}</span></div></div>
+            ${notesHtml(w, true)}
+          </article>`,
+        actions: [{ label: 'とじる', kind: 'ghost' }]
       });
     }
 
-    function renderReviewScreen() {
-      const wrongSet = toSet(appState.data.wrongQuestionIds);
-      const reviewItems = WORDS.filter((w) => wrongSet.has(w.id));
-      const msg = document.getElementById('reviewMessage');
-      const list = document.getElementById('reviewList');
-      list.innerHTML = '';
-
-      if (reviewItems.length === 0) {
-        msg.textContent = '🌈 まだ復習する問題はないよ。すごい！';
+    /* ---------- ふくしゅう ---------- */
+    function renderReview() {
+      const items = wrongWords();
+      setProf($('#reviewScreen'), 'normal');
+      if (!items.length) {
+        $('#reviewMessage').textContent = 'まちがえた ことばは まだ ないよ。バトルで ちょうせんしてみよう！';
+        $('#reviewActions').innerHTML = '<button class="btn primary" type="button" data-nav="modeScreen"><span>バトルを えらぶ</span></button>';
+        $('#reviewList').innerHTML = '';
         return;
       }
+      $('#reviewMessage').textContent = `まちがいモンスターが ${items.length}ひき いるよ。ふくしゅうバトルで やっつけよう！`;
+      $('#reviewActions').innerHTML = '<button class="btn primary" type="button" data-mode="review"><span>ふくしゅうバトル スタート</span></button>';
+      $('#reviewList').innerHTML = items.map((w) => `
+        <article class="karuta rv" data-cat="${w.category}">
+          <div class="monster mini-mon" style="--mon:${REVIEW_INK}">${MONSTER_SVG}</div>
+          <div><span class="reading-line furi">${esc(w.reading)}</span><span class="${wordClass(w.word)}">${esc(w.word)}</span></div>
+          <p class="rv-hint">ヒント：${esc(w.hint)}</p>
+        </article>`).join('');
+    }
 
-      msg.textContent = `👾 まちがいモンスターが ${reviewItems.length} 体いるよ。復習バトルでやっつけよう！`;
-      reviewItems.slice(0, 12).forEach((item) => {
-        const div = document.createElement('article');
-        div.className = 'entry';
-        div.innerHTML = `<h4>👾 ${item.word}</h4><p><strong>弱点ヒント:</strong> ${item.hint}</p><p class="small">${categoryLabel(item.category)} / レア度 ${rarityLabel(item.difficulty)}</p>`;
-        list.appendChild(div);
-      });
+    /* ---------- せってい ---------- */
+    function setRadio(name, value) {
+      const input = document.querySelector(`input[name="${name}"][value="${value}"]`);
+      if (input) input.checked = true;
     }
 
     function renderSettings() {
-      document.getElementById('difficultySelect').value = appState.data.settings.difficulty || 'all';
-      document.getElementById('settingsInfo').textContent = appState.storageAvailable
-        ? '設定をかえると、つぎのプレイから反映されるよ。'
-        : 'この端末では保存が使えないため、設定はその場だけ有効です。';
+      const s = appState.data.settings;
+      setRadio('difficulty', s.difficulty || 'all');
+      setRadio('furigana', s.furigana === false ? 'off' : 'on');
+      $('#settingsInfo').textContent = appState.storageAvailable ? '' : 'この きかいでは ほぞんできないので、せっていは いまだけ つかえるよ。';
     }
 
-    function saveSettings() {
-      const difficulty = document.getElementById('difficultySelect').value;
-      appState.data.settings.difficulty = difficulty;
-      saveData();
-      document.getElementById('settingsInfo').textContent = `✅ 設定を保存したよ！難易度: ${difficulty === 'all' ? 'ぜんぶ' : difficultyLabel(difficulty)}`;
-      renderTitleStats();
+    function confirmReset() {
+      openDialog({
+        title: 'きろくを ぜんぶ けしますか？',
+        body: '<p>ずかん・スター・レベル・まちがえた ことばが、さいしょに もどります。</p>',
+        actions: [
+          { label: 'やめる', kind: 'ghost' },
+          {
+            label: 'けす',
+            kind: 'danger',
+            onClick: () => openDialog({
+              title: 'ほんとうに けしますか？',
+              body: '<p>けした きろくは、もとに もどせません。</p>',
+              actions: [
+                { label: 'やめる', kind: 'ghost' },
+                { label: 'ぜんぶ けす', kind: 'danger', onClick: resetData }
+              ]
+            })
+          }
+        ]
+      });
     }
 
     function resetData() {
-      const ok = window.confirm('学習記録をすべてリセットします。よろしいですか？');
-      if (!ok) return;
-      const second = window.confirm('ほんとうに消しますか？この操作はもとに戻せません。');
-      if (!second) return;
-
-      appState.data = {
-        unlockedWordIds: [],
-        wrongQuestionIds: [],
-        totalPlays: 0,
-        totalCorrect: 0,
-        bestScore: 0,
-        treasures: [],
-        titles: [],
-        stars: 0,
-        stamps: [],
-        settings: {difficulty: 'all'},
-        lastPlayedAt: ''
-      };
+      const settings = { ...appState.data.settings };
+      appState.data = { ...defaultData(), settings };
       saveData();
       renderSettings();
-      renderTitleStats();
-      alert('学習記録をリセットしました。');
+      $('#settingsInfo').textContent = 'きろくを けしました。';
     }
 
+    /* ---------- 入力 ---------- */
     function registerEvents() {
-      document.getElementById('startFromTitle').addEventListener('click', () => showScreen('modeScreen'));
-      document.querySelectorAll('[data-nav]').forEach((btn) => {
-        btn.addEventListener('click', () => showScreen(btn.dataset.nav));
-      });
-      document.querySelectorAll('[data-mode]').forEach((btn) => {
-        btn.addEventListener('click', () => startMode(btn.dataset.mode));
+      document.addEventListener('click', (event) => {
+        const target = event.target.closest('[data-nav], [data-mode], [data-action], [data-word]');
+        if (!target || target.disabled) return;
+        if (target.dataset.nav) {
+          if (target.dataset.nav === 'back') goBack();
+          else showScreen(target.dataset.nav);
+          return;
+        }
+        if (target.dataset.mode) {
+          startMode(target.dataset.mode);
+          return;
+        }
+        if (target.dataset.word) {
+          openWordDialog(Number(target.dataset.word));
+          return;
+        }
+        const action = target.dataset.action;
+        if (action === 'hint') showHint();
+        if (action === 'next') nextQuestion();
+        if (action === 'quit') confirmQuit();
+        if (action === 'replay') startMode(appState.mode);
+        if (action === 'reset') confirmReset();
       });
 
-      document.getElementById('hintBtn').addEventListener('click', showHint);
-      document.getElementById('nextBtn').addEventListener('click', nextQuestion);
-      document.getElementById('dictionaryFilter').addEventListener('change', renderDictionary);
-      document.getElementById('saveSettingsBtn').addEventListener('click', saveSettings);
-      document.getElementById('resetDataBtn').addEventListener('click', resetData);
+      document.addEventListener('change', (event) => {
+        const { name, value } = event.target;
+        if (name === 'dexFilter') renderDictionary();
+        if (name === 'difficulty') {
+          appState.data.settings.difficulty = value;
+          saveData();
+          $('#settingsInfo').textContent = `むずかしさを「${value === 'all' ? 'ぜんぶ' : DIFF[value].label}」に したよ。`;
+        }
+        if (name === 'furigana') {
+          appState.data.settings.furigana = value === 'on';
+          saveData();
+          applyFurigana();
+          $('#settingsInfo').textContent = value === 'on' ? 'ふりがなを つけたよ。' : 'ふりがなを けしたよ。';
+        }
+      });
+
+      const dialog = $('#dialog');
+      dialog.addEventListener('click', (event) => {
+        if (event.target === dialog) closeDialog();
+      });
 
       document.addEventListener('keydown', (event) => {
-        if (!document.getElementById('quizScreen').classList.contains('active')) return;
-        if (event.key === 'Enter' && appState.answered) {
+        if (dialog.open) return;
+        if (!$('#quizScreen').classList.contains('active')) return;
+        if (!appState.answered && /^[1-4]$/.test(event.key)) {
+          event.preventDefault();
+          answerQuestion(Number(event.key) - 1);
+          return;
+        }
+        if (event.key === 'Enter' && appState.answered && !(document.activeElement instanceof HTMLButtonElement)) {
+          event.preventDefault();
           nextQuestion();
         }
       });
@@ -1037,10 +1994,10 @@
 
     function init() {
       loadData();
+      applyFurigana();
+      setProf(document, 'normal');
       registerEvents();
-      renderTodayWord();
-      renderTitleStats();
-      renderSettings();
+      renderTitle();
     }
 
     init();
